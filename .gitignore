@@ -1,0 +1,42 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pdb
+*.egg-info/
+*.egg
+
+# Virtual environment
+venv/
+.env
+.venv/
+env/
+ENV/
+
+# IDE/editor
+.vscode/
+.idea/
+*.swp
+
+# Logs
+*.log
+logs/
+*.out
+
+# Database (SQLite, dsb.)
+*.db
+*.sqlite3
+
+# Cache
+.cache/
+*.bak
+*.tmp
+
+# Uvicorn / Gunicorn reload files
+*.pid
+
+# Coverage / testing
+.coverage
+htmlcov/
+.pytest_cache/
