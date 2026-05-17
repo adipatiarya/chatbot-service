@@ -23,3 +23,6 @@ class User(UserBase, table=True):
         default_factory=get_datetime_utc,
         sa_type=DateTime(timezone=True),  # type: ignore
     )
+# atribut untuk dikirim via api creation
+class UserCreate(UserBase):
+    password: str = Field(min_length=8, max_length=128)
