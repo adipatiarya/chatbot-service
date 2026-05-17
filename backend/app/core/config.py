@@ -8,6 +8,7 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
+    #properti ini harus sama
     POSTGRES_USER: str
     POSTGRES_SERVER: str
     POSTGRES_PORT: int
@@ -15,7 +16,7 @@ class Settings(BaseSettings):
     POSTGRES_USER: str
     POSTGRES_PASSWORD:str
 
-    
+    #menghasilkan dot bukan ()
     @computed_field
     @property
     def SQLALCHEMY_DATABASE_URI(self) -> PostgresDsn:
