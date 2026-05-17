@@ -14,7 +14,7 @@ from app.models import User
 #TEST MODE
 
 @pytest.fixture(scope="session", autouse=True)
-def db() -> Generator[Session, None, None]:
+def sess() -> Generator[Session, None, None]:
     with Session(engine) as session:
         init_db(session)
         yield session
