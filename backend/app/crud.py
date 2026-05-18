@@ -41,7 +41,7 @@ def authenticate(*, session: Session, email: str, password: str) -> User | None:
         db_user.hashed_password = update_password_hash
         session.add(db_user)
         session.commit()
-        session.refresh()
+        session.refresh(db_user)
 
     return db_user
 

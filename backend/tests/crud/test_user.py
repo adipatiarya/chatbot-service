@@ -3,6 +3,7 @@ from tests.helpers.util import random_email, random_lower_string
 from app.models import UserCreate, User, UserUpdate
 from app.core.security import verify_password
 from sqlmodel import Session
+from pwdlib.hashers.bcrypt import BcryptHasher
 from app import crud
 
 
@@ -75,3 +76,37 @@ def test_update_user(sess: Session) -> None :
     assert user.email == user_2.email
     verified, _ = verify_password(plain_password= new_password, hashed_password=user_2.hashed_password)
     assert verified
+
+
+def test_authenticate_user_with_bcrypt_upgrades_to_argon2(sess: Session) -> None:
+    """Uji bahwa pengguna dengan hash kata sandi bcrypt ditingkatkan menjadi argon2 saat login."""
+    email = random_email()
+    password = random_lower_string()
+
+    #Buat hash bcrypt secara langsung (mensimulasikan kata sandi lama).
+    bcrypt_hasher = BcryptHasher()
+    bcrypt_hash = bcrypt_hasher.hash(password)
+    assert bcrypt_hash.startswith("$2")
+
+    # Membuat user dengan bcrypt secara langsung di database
+
+    user = User(email=email, hashed_password=bcrypt_hash)
+    sess.add(user)
+    sess.commit()
+    sess.refresh(user)
+
+    # Pastikan hasnya adalah bcrypt sebelum di authentikasi
+    assert user.hashed_password.startswith("$2")
+
+    #Autentikasi – ini seharusnya meningkatkan hash menjadi argon2.
+    authenticated_user = crud.authenticate(session=sess, email=email, password=password)
+    assert authenticated_user
+    assert authenticated_user.email == email
+
+    sess.refresh(authenticated_user)
+    # Pastikan hashnya sudah ditingkatkan ke argon2
+    assert authenticated_user.hashed_password.startswith("$argon2")
+
+    verified, update_hash = verify_password(plain_password=password, hashed_password=authenticated_user.hashed_password)
+    assert verified
+    assert update_hash is None
