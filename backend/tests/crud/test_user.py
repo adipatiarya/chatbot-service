@@ -21,3 +21,16 @@ def test_authenticate_user(sess: Session) -> None:
 
     assert authenticate_user
     assert user.email == authenticate_user.email
+
+def test_not_authenticate_user(sess: Session) -> None:
+    email = random_email()
+    password = random_lower_string()
+    user = crud.authenticate(session=sess, email=email, password=password)
+    assert user is None
+
+def test_check_user_is_active_inactive(sess: Session) -> None:
+    email = random_email()
+    password = random_lower_string()
+    user_in = UserCreate(email=email, password=password, is_active=False)
+    user = crud.create_user(session=sess, user_create=user_in)
+    assert user.is_active is False

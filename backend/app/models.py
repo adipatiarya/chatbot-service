@@ -26,3 +26,8 @@ class User(UserBase, table=True):
 # atribut untuk dikirim via api creation
 class UserCreate(UserBase):
     password: str = Field(min_length=8, max_length=128)
+
+class UserUpdate(UserBase):
+    email: EmailStr | None = Field(default=None, max_length=255)
+    password: str | None = Field(default=None, max_length=255)
+    
