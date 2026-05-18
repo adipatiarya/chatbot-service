@@ -1,7 +1,16 @@
 
-from sqlmodel import Session
+from sqlmodel import Session, select
 from app.models import UserCreate, User
-from app.core.security import get_password_hash
+from app.core.security import get_password_hash, verify_password
+
+
+DUMMY_HASH = "$argon2id$v=19$m=65536,t=3,p=4$MjQyZWE1MzBjYjJlZTI0Yw$YTU4NGM5ZTZmYjE2NzZlZjY0ZWY3ZGRkY2U2OWFjNjk"
+
+
+def get_user_by_email(*, session: Session, email:str) -> User | None:
+    statemen = select(User).where(User.email == email)
+    session_user = session.exec(statemen).first()
+    return session_user
 
 def create_user(*, session: Session, user_create: UserCreate) -> User:
     try:
@@ -17,3 +26,21 @@ def create_user(*, session: Session, user_create: UserCreate) -> User:
         session.rollback()   # penting: balikin transaksi kalau gagal
         print(f"Error saat create_user: {e}")
         raise  # lempar lagi supaya bisa ditangani di level atas
+
+def authenticate(*, session: Session, email: str, password: str) -> User | None:
+    db_user = get_user_by_email(session=session, email=email)
+    if not db_user:
+        verify_password(plain_password=password, hashed_password=DUMMY_HASH)
+        return None
+    
+    virified, update_password_hash = verify_password(plain_password=password, hashed_password=db_user.hashed_password)
+    
+    if not virified:
+        return None
+    if update_password_hash:
+        db_user.hashed_password = update_password_hash
+        session.add(db_user)
+        session.commit()
+        session.refresh()
+
+    return db_user

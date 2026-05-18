@@ -11,3 +11,6 @@ password_hash = PasswordHash(
 
 def get_password_hash(password: str) -> str:
     return password_hash.hash(password)
+
+def verify_password(*, plain_password:str, hashed_password:str) -> tuple[bool, str | None] :
+    return password_hash.verify_and_update(plain_password, hashed_password)
