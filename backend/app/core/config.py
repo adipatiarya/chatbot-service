@@ -7,6 +7,7 @@ class Settings(BaseSettings):
         env_ignore_empty=True,
         extra="ignore",
     )
+    API_V1_STR: str = "/api/v1"
 
     #properti ini harus sama
     POSTGRES_USER: str
@@ -18,6 +19,9 @@ class Settings(BaseSettings):
 
     FIRST_SUPERUSER: EmailStr
     FIRST_SUPERUSER_PASSWORD: str
+    SECRET_KEY:str
+
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8
 
     #menghasilkan dot bukan ()
     @computed_field

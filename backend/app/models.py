@@ -30,4 +30,8 @@ class UserCreate(UserBase):
 class UserUpdate(UserBase):
     email: EmailStr | None = Field(default=None, max_length=255)
     password: str | None = Field(default=None, max_length=255)
+
+class Token(SQLModel):
+    access_token: str
+    token_type: str = 'bearer'
     
