@@ -37,6 +37,13 @@ def test_recovery_password(client: TestClient, normal_user_token_headers: dict[s
     
     with(
         patch("app.core.config.settings.SMTP_HOST", "smtp.example.com"),
-        patch("app.core.config.settings.SMTP_USER", "admin@example.com")
+        patch("app.core.config.settings.SMTP_USER", "admin@example.com"),
+        patch("app.core.config.settings.SMTP_PASSWORD", "hello cil"),
+       
     ):
-        print (settings.SMTP_HOST)
+        email = "test@example.com"
+        r = client.post(f"{settings.API_V1_STR}/password-recovery/{email}", headers=normal_user_token_headers)
+        assert r.status_code == 200
+        assert r.json() == {
+            "message":"If that email is registered, we sent a password recovery link"
+        }

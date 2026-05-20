@@ -32,8 +32,7 @@ def superuser_token_headers(client: TestClient) -> dict[str, str]:
 
 @pytest.fixture()
 def normal_user_token_headers(client: TestClient, sess: Session):
-    r = authentication_token_from_email(
+    return authentication_token_from_email( 
         client=client, email=settings.EMAIL_TEST_USER, db=sess
     )
-    print(f"HASIL {r}")
-    return r
+    

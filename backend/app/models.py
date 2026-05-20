@@ -42,3 +42,7 @@ class UserPublic(UserBase):
 
 class TokenPayload(SQLModel):
     sub: str | None = None
+
+
+class Message(SQLModel):
+    message: str

@@ -6,10 +6,12 @@ from fastapi.security import OAuth2PasswordRequestForm
 
 
 from app import crud
-from app.models import Token, UserPublic
+from app.models import Token, UserPublic, Message
 from app.api.deps import SessionDep, CurrentUser
 from app.core.config import settings
 from app.core.security import create_access_token
+from app.utils import generate_password_reset_token, generate_reset_password_email
+from app.repo.email import send_email
 
 router = APIRouter(tags=["Login"])
 
@@ -29,6 +31,22 @@ def login_access_token(sess:SessionDep, form_data: Annotated[OAuth2PasswordReque
             subject=user.id, expires_delta=access_token_expires
         )
     )
+
+@router.post("/password-recovery/{email}")
+def password_recovery(email: str, sess: SessionDep)-> Message:
+    
+    user = crud.get_user_by_email(session=sess, email=email)
+
+    if user:
+        password_reset_token = generate_password_reset_token(email=email)
+        email_data = generate_reset_password_email(email_to=user.email, email=email, token=password_reset_token)
+        send_email(
+            email_to=user.email,
+            subject=email_data.subject,
+            html_content=email_data.html_content
+        )
+
+    return Message(message="If that email is registered, we sent a password recovery link")
 
 @router.post("/login/test-token", response_model=UserPublic)
 def login_test_token(current_user: CurrentUser):
