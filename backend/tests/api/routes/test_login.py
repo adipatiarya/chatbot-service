@@ -47,3 +47,16 @@ def test_recovery_password(client: TestClient, normal_user_token_headers: dict[s
         assert r.json() == {
             "message":"If that email is registered, we sent a password recovery link"
         }
+        
+def test_recovery_password_user_not_exist(client: TestClient, normal_user_token_headers: dict[str, str]) -> None:
+    
+    email = "tesddt@example.com"
+    r = client.post(f"{settings.API_V1_STR}/password-recovery/{email}", headers=normal_user_token_headers)
+    
+    assert r.status_code == 200
+
+    # Return 200 juga supaya tidak ada percobaan email
+    assert r.json() == {
+        "message":"If that email is registered, we sent a password recovery link"
+    }
+        
