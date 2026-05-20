@@ -17,11 +17,15 @@ class Settings(BaseSettings):
     POSTGRES_USER: str
     POSTGRES_PASSWORD:str
 
+    EMAIL_TEST_USER: EmailStr = "test@example.com"
     FIRST_SUPERUSER: EmailStr
     FIRST_SUPERUSER_PASSWORD: str
     SECRET_KEY:str
 
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8
+
+    SMTP_HOST:str | None = None
+    SMTP_USER:str | None = None
 
     #menghasilkan dot bukan ()
     @computed_field
