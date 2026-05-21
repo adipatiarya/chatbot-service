@@ -88,7 +88,6 @@ def test_reset_password(client:TestClient, sess:Session) -> None:
     r = client.post(f"{settings.API_V1_STR}/reset-password", headers=headers, json=data)
     assert r.status_code == 200
     assert r.json() == {"message":"Password updated successfully"}
-    
+
     sess.refresh(user)
 
-    print(user_create)
