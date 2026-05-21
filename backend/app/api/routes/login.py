@@ -6,13 +6,9 @@ from fastapi.security import OAuth2PasswordRequestForm
 
 
 from app import crud
-from app.models import (
-    Token, 
-    UserPublic, 
-    Message, 
-    NewPassword,
-    UserUpdate,
-)
+from app.models import UserPublic, UserUpdate
+from app.generic import Token, Message, NewPassword
+
 from app.api.deps import SessionDep, CurrentUser
 from app.core.config import settings
 from app.core.security import create_access_token

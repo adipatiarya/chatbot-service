@@ -13,8 +13,9 @@ from jwt.exceptions import InvalidTokenError
 
 from app.core.db import engine
 from app.core.config import settings
-from app.models import User, TokenPayload
+from app.models import User
 from app.core import security
+from app.generic import TokenPayload
 
 def get_db() -> Generator[Session, None, None]:
     with Session(engine) as sess:
@@ -52,4 +53,10 @@ def get_current_user(sess: SessionDep, token: TokenDep):
     return user
    
 CurrentUser = Annotated[User, Depends(get_current_user)]
+
+
+def get_current_user_superadmin(current_user: CurrentUser):
+    if not current_user.is_superuser:
+        raise HTTPException(status_code=403, detail='The user doesn\'t have enough privileges')
+    return current_user
 
