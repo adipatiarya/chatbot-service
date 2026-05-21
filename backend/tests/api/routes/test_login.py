@@ -82,10 +82,10 @@ def test_reset_password(client:TestClient, sess:Session) -> None:
 
     user = crud.create_user(session=sess, user_create=user_create)
     token = generate_password_reset_token(email=email)
-    headers = user_authentication_headers(client=client, email=email, password=password)
     data = {"new_password": new_password, "token":token}
 
-    r = client.post(f"{settings.API_V1_STR}/reset-password", headers=headers, json=data)
+    r = client.post(f"{settings.API_V1_STR}/reset-password", json=data)
+    
     assert r.status_code == 200
     assert r.json() == {"message":"Password updated successfully"}
 

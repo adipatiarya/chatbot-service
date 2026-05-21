@@ -1,16 +1,27 @@
 from datetime import timedelta
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.security import OAuth2PasswordRequestForm
 
 
 from app import crud
-from app.models import Token, UserPublic, Message
+from app.models import (
+    Token, 
+    UserPublic, 
+    Message, 
+    NewPassword,
+    UserUpdate,
+)
 from app.api.deps import SessionDep, CurrentUser
 from app.core.config import settings
 from app.core.security import create_access_token
-from app.utils import generate_password_reset_token, generate_reset_password_email
+from app.utils import (
+    generate_password_reset_token, 
+    generate_reset_password_email,
+    verify_password_reset_token,
+    logger
+)
 from app.repo.email import send_email
 
 router = APIRouter(tags=["Login"])
@@ -53,7 +64,24 @@ def login_test_token(current_user: CurrentUser):
     return current_user
 
 @router.post("/reset-password")
-def reset_password():
+def reset_password(sess:SessionDep, body: NewPassword):
+   
+    email = verify_password_reset_token(token=body.token)
+    if not email:
+        raise HTTPException(status_code=400, detail="Invalid token")
+    user = crud.get_user_by_email(session=sess, email=email)
+    if not user:
+        # Jangan di proses jika usernya tidak ada
+        raise HTTPException(status_code=400, detail="Invalid token")
+    elif not user.is_active:
+        raise HTTPException(status_code=400, detail="Inactive user")
+    user_un_update = UserUpdate(password=body.new_password)
+
+    crud.update_user(
+        session=sess,
+        db_user=user,
+        user_in=user_un_update
+    )
     return {
         "message":"Password updated successfully"
     }

@@ -68,3 +68,14 @@ def generate_reset_password_email(*, email_to:str, email:str, token:str) -> Emai
         }
     )
     return EmailData(html_content=html_content, subject=subject)
+
+def verify_password_reset_token(*, token:str) -> str | None:
+    try:
+        decoded_token = jwt.decode(
+            token,
+            settings.SECRET_KEY,
+            algorithms=[security.ALGORITHM]
+        )
+        return str(decoded_token["sub"])
+    except jwt.exceptions.InvalidTokenError:
+        return None
