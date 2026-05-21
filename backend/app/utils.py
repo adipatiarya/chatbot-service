@@ -79,3 +79,6 @@ def verify_password_reset_token(*, token:str) -> str | None:
         return str(decoded_token["sub"])
     except jwt.exceptions.InvalidTokenError:
         return None
+    
+def get_datetime_utc() -> datetime:
+    return datetime.now(timezone.utc)

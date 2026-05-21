@@ -4,7 +4,10 @@ import uuid
 from sqlalchemy import DateTime
 
 from sqlmodel import Field, Relationship, SQLModel
-from .user import User, get_datetime_utc
+
+from app.utils import get_datetime_utc
+from .user import User
+
 
 
 class ProjectBase(SQLModel):

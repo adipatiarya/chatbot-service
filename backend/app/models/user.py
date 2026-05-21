@@ -4,10 +4,12 @@ from sqlalchemy import DateTime
 from pydantic import EmailStr
 from sqlmodel import Relationship, SQLModel, Field
 
+from typing import TYPE_CHECKING
 
+from app.utils import get_datetime_utc
 
-def get_datetime_utc() -> datetime:
-    return datetime.now(timezone.utc)
+if TYPE_CHECKING:
+    from .project import Project
 
 
 # Shared properties
