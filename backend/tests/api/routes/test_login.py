@@ -7,6 +7,7 @@ from app.models import UserCreate
 from app import crud
 from app.utils import generate_password_reset_token
 
+from app.core.security import verify_password
 from tests.helpers.user import user_authentication_headers
 from tests.helpers.util import random_email, random_lower_string
 
@@ -84,10 +85,21 @@ def test_reset_password(client:TestClient, sess:Session) -> None:
     token = generate_password_reset_token(email=email)
     data = {"new_password": new_password, "token":token}
 
-    r = client.post(f"{settings.API_V1_STR}/reset-password", json=data)
-    
+    r = client.post(f"{settings.API_V1_STR}/reset-password/", json=data)
+
     assert r.status_code == 200
     assert r.json() == {"message":"Password updated successfully"}
 
     sess.refresh(user)
+    verified, _ = verify_password(plain_password=new_password, hashed_password=user.hashed_password)
+    assert verified
+
+def test_reset_password_invalid_token(client: TestClient) -> None:
+    data = {"new_password":"changetus", "token":"invalid"}
+    r = client.post(f"{settings.API_V1_STR}/reset-password/", json=data)
+    resp = r.json()
+
+    assert "detail" in resp
+    assert r.status_code == 400
+    assert resp["detail"] == "Invalid token"
 
