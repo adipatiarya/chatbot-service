@@ -15,7 +15,7 @@ import colorlog
 
 handler = colorlog.StreamHandler()
 handler.setFormatter(colorlog.ColoredFormatter(
-    "%(log_color)s%(levelname)-8s%(reset)s %(red)s%(message)s",
+    "%(log_color)s%(levelname)-8s%(reset)s %(green)s%(message)s",
     log_colors={
         "DEBUG": "cyan",
         "INFO": "green",

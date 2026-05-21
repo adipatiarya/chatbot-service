@@ -51,3 +51,9 @@ def password_recovery(email: str, sess: SessionDep)-> Message:
 @router.post("/login/test-token", response_model=UserPublic)
 def login_test_token(current_user: CurrentUser):
     return current_user
+
+@router.post("/reset-password")
+def reset_password():
+    return {
+        "message":"Password updated successfully"
+    }
