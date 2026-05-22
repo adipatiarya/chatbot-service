@@ -11,7 +11,7 @@ from .user import User
 
 
 class ProjectBase(SQLModel):
-    name: str = Field(unique=True, min_length=10, max_length=255)
+    name: str = Field(unique=True, min_length=5, max_length=255)
     description: str | None = Field(default=None, max_length=255)
 
 
@@ -26,4 +26,17 @@ class Project(ProjectBase, table=True):
     )
     owner: User | None = Relationship(back_populates="projects")
 
-__all__ = ["ProjectBase", "Project"]
+class ProjectCreate(ProjectBase):
+    pass
+
+class ProjectPublic(ProjectBase):
+    id: uuid.UUID
+    owner_id: uuid.UUID
+    created_at: datetime
+    created_by: str
+
+class ProjectPublics(SQLModel):
+    data: list[ProjectPublic]
+    count: int
+
+__all__ = ["ProjectBase", "Project", "ProjectCreate", "ProjectPublic"]
