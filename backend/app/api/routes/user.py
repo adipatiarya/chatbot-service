@@ -1,27 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException
 
-from app.api.deps import  CurrentUser, SessionDep, get_current_user_superadmin
-
-from fastapi import Request, Path
-
-from app.utils import logger
+from app.api.deps import  SessionDep, get_current_user_superadmin
 from app.models import UserCreate, UserPublic
-from backend.app import crud
+from app import crud
 
 router = APIRouter(prefix="/users", tags=["User"])
 
-
-
-@router.get("/me")
-def users_me(current_user: CurrentUser) -> None:
-    return current_user
-
-def may_depend():
-    return 'xx'
-
-async def test_depend(req: Request):
-    js = await req.json()
-    print(f"HASILNYA {js}")
 
 @router.post("/", dependencies=[Depends(get_current_user_superadmin)], response_model=UserPublic)
 def create_user(*, session: SessionDep, user_in: UserCreate) -> None:

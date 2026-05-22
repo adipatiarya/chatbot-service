@@ -16,13 +16,16 @@ from app.utils import (
     generate_password_reset_token, 
     generate_reset_password_email,
     verify_password_reset_token,
-    logger
 )
 from app.repo.email import send_email
 
-router = APIRouter(tags=["Login"])
+router = APIRouter(tags=["Authentication"], prefix="/auth")
 
-@router.post("/login/access-token")
+@router.get("/me")
+def users_me(current_user: CurrentUser) -> None:
+    return current_user
+
+@router.post("/access-token")
 def login_access_token(sess:SessionDep, form_data: Annotated[OAuth2PasswordRequestForm, Depends()]) -> Token:
 
     user = crud.authenticate(session=sess, email=form_data.username, password=form_data.password)
@@ -55,7 +58,7 @@ def password_recovery(email: str, sess: SessionDep)-> Message:
 
     return Message(message="If that email is registered, we sent a password recovery link")
 
-@router.post("/login/test-token", response_model=UserPublic)
+@router.post("/test-token", response_model=UserPublic)
 def login_test_token(current_user: CurrentUser):
     return current_user
 

@@ -10,12 +10,38 @@ from app.utils import generate_password_reset_token
 from app.core.security import verify_password
 from tests.helpers.util import random_email, random_lower_string
 
+def test_get_users_superuser_me(client: TestClient, superuser_token_headers: dict[str, str]) -> None:
+    
+    r = client.get(f"{settings.API_V1_STR}/auth/me", headers=superuser_token_headers)
+   
+    assert r.status_code == 200
+
+    current_user = r.json()
+   
+    assert current_user
+    assert current_user["is_active"] is True
+    assert current_user['is_superuser']
+    assert current_user["email"]== settings.FIRST_SUPERUSER
+
+def test_get_users_normal_user_me(client: TestClient, normal_user_token_headers: dict[str, str]) -> None:
+    
+    r = client.get(f"{settings.API_V1_STR}/auth/me", headers=normal_user_token_headers)
+   
+    assert r.status_code == 200
+
+    current_user = r.json()
+   
+    assert current_user
+    assert current_user["is_active"] is True
+    assert current_user['is_superuser'] is False
+    assert current_user["email"]== settings.EMAIL_TEST_USER
+
 def test_get_access_token(client: TestClient) -> None:
     login_data = {
         "username": settings.FIRST_SUPERUSER,
         "password": settings.FIRST_SUPERUSER_PASSWORD
     }
-    r = client.post(f"{settings.API_V1_STR}/login/access-token", data=login_data)
+    r = client.post(f"{settings.API_V1_STR}/auth/access-token", data=login_data)
     tokens = r.json()
 
     assert r.status_code == 200
@@ -27,12 +53,12 @@ def test_get_access_token_incorrect_password(client: TestClient) -> None:
         "username": settings.FIRST_SUPERUSER,
         "password": 'incorectpass'
     }
-    r = client.post(f"{settings.API_V1_STR}/login/access-token", data=login_data)
+    r = client.post(f"{settings.API_V1_STR}/auth/access-token", data=login_data)
     assert r.status_code == 400
 
 def test_user_access_token(client: TestClient, superuser_token_headers: dict[str, str]) -> None:
     r = client.post(
-        f"{settings.API_V1_STR}/login/test-token",
+        f"{settings.API_V1_STR}/auth/test-token",
         headers=superuser_token_headers
         )
     result = r.json()
@@ -49,7 +75,7 @@ def test_recovery_password(client: TestClient, normal_user_token_headers: dict[s
        
     ):
         email = "test@example.com"
-        r = client.post(f"{settings.API_V1_STR}/password-recovery/{email}", headers=normal_user_token_headers)
+        r = client.post(f"{settings.API_V1_STR}/auth/password-recovery/{email}", headers=normal_user_token_headers)
         assert r.status_code == 200
         assert r.json() == {
             "message":"If that email is registered, we sent a password recovery link"
@@ -58,7 +84,7 @@ def test_recovery_password(client: TestClient, normal_user_token_headers: dict[s
 def test_recovery_password_user_not_exist(client: TestClient, normal_user_token_headers: dict[str, str]) -> None:
     
     email = "tesddt@example.com"
-    r = client.post(f"{settings.API_V1_STR}/password-recovery/{email}", headers=normal_user_token_headers)
+    r = client.post(f"{settings.API_V1_STR}/auth/password-recovery/{email}", headers=normal_user_token_headers)
     
     assert r.status_code == 200
 
@@ -84,7 +110,7 @@ def test_reset_password(client:TestClient, sess:Session) -> None:
     token = generate_password_reset_token(email=email)
     data = {"new_password": new_password, "token":token}
 
-    r = client.post(f"{settings.API_V1_STR}/reset-password/", json=data)
+    r = client.post(f"{settings.API_V1_STR}/auth/reset-password/", json=data)
 
     assert r.status_code == 200
     assert r.json() == {"message":"Password updated successfully"}
@@ -95,7 +121,7 @@ def test_reset_password(client:TestClient, sess:Session) -> None:
 
 def test_reset_password_invalid_token(client: TestClient) -> None:
     data = {"new_password":"changetus", "token":"invalid"}
-    r = client.post(f"{settings.API_V1_STR}/reset-password/", json=data)
+    r = client.post(f"{settings.API_V1_STR}/auth/reset-password/", json=data)
     resp = r.json()
 
     assert "detail" in resp

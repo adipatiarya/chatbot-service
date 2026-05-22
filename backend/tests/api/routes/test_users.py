@@ -6,34 +6,10 @@ from sqlmodel import Session
 
 from app.utils import logger
 from app.core.config import settings
-from backend.app import crud
-from backend.tests.helpers.util import random_email, random_lower_string
+from app import crud
+from tests.helpers.util import random_email, random_lower_string
 
-def test_get_users_superuser_me(client: TestClient, superuser_token_headers: dict[str, str]) -> None:
-    
-    r = client.get(f"{settings.API_V1_STR}/users/me", headers=superuser_token_headers)
-   
-    assert r.status_code == 200
 
-    current_user = r.json()
-   
-    assert current_user
-    assert current_user["is_active"] is True
-    assert current_user['is_superuser']
-    assert current_user["email"]== settings.FIRST_SUPERUSER
-
-def test_get_users_normal_user_me(client: TestClient, normal_user_token_headers: dict[str, str]) -> None:
-    
-    r = client.get(f"{settings.API_V1_STR}/users/me", headers=normal_user_token_headers)
-   
-    assert r.status_code == 200
-
-    current_user = r.json()
-   
-    assert current_user
-    assert current_user["is_active"] is True
-    assert current_user['is_superuser'] is False
-    assert current_user["email"]== settings.EMAIL_TEST_USER
 
 @contextmanager
 def hello(world: str) -> Generator[None,None, None]:
