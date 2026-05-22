@@ -7,7 +7,7 @@ from sqlmodel import Session, delete
 from app.core.config import settings
 from app.core.db import engine, init_db
 from app.main import app
-from app.models import User
+from app.models import User, Project
 from tests.helpers.user import authentication_token_from_email
 from tests.helpers.util import get_superuser_token_headers
 
@@ -19,6 +19,7 @@ def sess() -> Generator[Session, None, None]:
         init_db(session)
         yield session
         session.exec(delete(User))
+        session.exec(delete(Project))
         session.commit()
 
 @pytest.fixture(scope="module")
