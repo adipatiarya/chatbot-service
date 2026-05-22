@@ -46,6 +46,7 @@ class Settings(BaseSettings):
     SMTP_PASSWORD: str | None = None
     EMAILS_FROM_EMAIL: EmailStr | None = None
     EMAILS_FROM_NAME: str | None = None
+    GENAI_API_KEY: str
 
     #menghasilkan dot bukan ()
     @computed_field
