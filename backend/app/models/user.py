@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime
 from sqlalchemy import DateTime
 from pydantic import EmailStr
 from sqlmodel import Relationship, SQLModel, Field

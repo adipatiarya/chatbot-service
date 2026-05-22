@@ -1,5 +1,6 @@
 
 from datetime import datetime
+from typing import TYPE_CHECKING
 import uuid
 from sqlalchemy import DateTime
 
@@ -8,7 +9,8 @@ from sqlmodel import Field, Relationship, SQLModel
 from app.utils import get_datetime_utc
 from .user import User
 
-
+if TYPE_CHECKING:
+    from .document import Document
 
 class ProjectBase(SQLModel):
     name: str = Field(unique=True, min_length=5, max_length=255)
@@ -25,6 +27,7 @@ class Project(ProjectBase, table=True):
         foreign_key="user.id", nullable=False, ondelete="CASCADE"
     )
     owner: User | None = Relationship(back_populates="projects")
+    documents: list["Document"] = Relationship(back_populates="project", cascade_delete=True)
 
 class ProjectCreate(ProjectBase):
     pass
