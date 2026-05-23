@@ -12,3 +12,7 @@ __all__ = [
     *document.__all__,
 
 ]
+
+UserPublic.model_rebuild()
+User.model_rebuild()
+Project.model_rebuild()

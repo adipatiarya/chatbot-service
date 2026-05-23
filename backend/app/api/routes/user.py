@@ -1,14 +1,20 @@
-from fastapi import APIRouter, Depends, HTTPException
+import uuid
+from fastapi import APIRouter, Depends, HTTPException, status
 
-from app.api.deps import  SessionDep, get_current_user_superadmin
-from app.models import UserCreate, UserPublic
+from app.api.deps import  CurrentUser, SessionDep, authorize
+from app.models import UserCreate, UserPublic, User
 from app import crud
+from app.generic import UserPermission
 
 router = APIRouter(prefix="/users", tags=["User"])
 
 
-@router.post("/", dependencies=[Depends(get_current_user_superadmin)], response_model=UserPublic)
-def create_user(*, session: SessionDep, user_in: UserCreate) -> None:
+@router.post("/", 
+             dependencies=[Depends(authorize(permissions=[UserPermission.USER_CREATE]))], 
+             response_model=UserPublic, response_model_exclude={"owner","is_superuser"},
+             status_code=status.HTTP_201_CREATED
+             )
+def create_user(*, session: SessionDep, user_in: UserCreate, current_user: CurrentUser) -> None:
     """
     Create new user.
     """
@@ -18,7 +24,20 @@ def create_user(*, session: SessionDep, user_in: UserCreate) -> None:
             status_code=400,
             detail="The user with this email already exists in the systems."
         )
-    user = crud.create_user(session=session, user_create=user_in)
+    user = crud.create_user(session=session, user_create=user_in, owner_id=current_user.id)
     return user
+
+@router.get("/{user_id}", dependencies=[Depends(authorize(permissions=[UserPermission.USER_READ]))], response_model=UserPublic, response_model_exclude={"owner","is_superuser"})
+def get_user_by_id(user_id:uuid.UUID, sess: SessionDep):
+    """
+     Get a specific user by id
+    """
+    user = sess.get(User, user_id)
+
+    if user is None:
+        raise HTTPException(
+            status_code=404,
+            detail= "User not exist"
+        )
     
-    
+    return  user

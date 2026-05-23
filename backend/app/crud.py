@@ -1,4 +1,6 @@
 
+import uuid
+
 from sqlmodel import Session, select
 from app.models import UserCreate, User, UserUpdate
 from app.core.security import get_password_hash, verify_password
@@ -12,11 +14,11 @@ def get_user_by_email(*, session: Session, email:str) -> User | None:
     session_user = session.exec(statemen).first()
     return session_user
 
-def create_user(*, session: Session, user_create: UserCreate) -> User:
+def create_user(*, session: Session, user_create: UserCreate, owner_id: uuid.UUID | None = None) -> User:
     try:
         db_obj = User.model_validate(
             user_create,
-            update={"hashed_password": get_password_hash(user_create.password)}
+            update={"hashed_password": get_password_hash(user_create.password), "owner_id": owner_id}
         )
         session.add(db_obj)
         session.commit()
