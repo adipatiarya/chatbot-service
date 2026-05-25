@@ -1,5 +1,2 @@
 
-from sqlmodel import SQLModel as Base
-
-from . import user
-
+from sqlmodel import Field, SQLModel as Base

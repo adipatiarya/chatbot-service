@@ -1,3 +1,5 @@
+import uuid
+
 from fastapi.encoders import jsonable_encoder
 import pytest
 from tests.helpers.util import random_email, random_lower_string
@@ -10,19 +12,19 @@ from app import crud
 from sqlalchemy.ext.asyncio import AsyncSession
 
 @pytest.mark.asyncio
-async def test_create_user(async_db: AsyncSession) -> None:
+async def test_create_user(async_db: AsyncSession, role_id:uuid.UUID) -> None:
     email = random_email()
     password = random_lower_string()
-    user_in = UserCreate(email=email, password=password)
+    user_in = UserCreate(email=email, password=password, role_id=role_id)
     user = await crud.create_user(session=async_db, user_create=user_in)
     assert user.email == email
     assert hasattr(user, "hashed_password")
 
 @pytest.mark.asyncio
-async def test_authenticate_user(async_db: AsyncSession) -> None:
+async def test_authenticate_user(async_db: AsyncSession, role_id:uuid.UUID) -> None:
     email = random_email()
     password = random_lower_string()
-    user_in = UserCreate(email=email, password=password)
+    user_in = UserCreate(email=email, password=password, role_id=role_id)
     user = await crud.create_user(session=async_db, user_create=user_in)
     authenticate_user = await crud.authenticate(session=async_db, email=email, password=password)
 
@@ -30,41 +32,41 @@ async def test_authenticate_user(async_db: AsyncSession) -> None:
     assert user.email == authenticate_user.email
 
 @pytest.mark.asyncio
-async def test_not_authenticate_user(async_db: AsyncSession) -> None:
+async def test_not_authenticate_user(async_db: AsyncSession, role_id:uuid.UUID) -> None:
     email = random_email()
     password = random_lower_string()
     user = await crud.authenticate(session=async_db, email=email, password=password)
     assert user is None
 
 @pytest.mark.asyncio
-async def test_check_user_is_active_inactive(async_db: AsyncSession) -> None:
+async def test_check_user_is_active_inactive(async_db: AsyncSession, role_id:uuid.UUID) -> None:
     email = random_email()
     password = random_lower_string()
-    user_in = UserCreate(email=email, password=password, is_active=False)
+    user_in = UserCreate(email=email, password=password, is_active=False, role_id=role_id)
     user = await crud.create_user(session=async_db, user_create=user_in)
     assert user.is_active is False
 
 @pytest.mark.asyncio
-async def test_check_user_is_superuser(async_db: AsyncSession) -> None:
+async def test_check_user_is_superuser(async_db: AsyncSession, role_id:uuid.UUID) -> None:
     email = random_email()
     password = random_lower_string()
-    user_in = UserCreate(email=email, password=password, is_superuser=True)
+    user_in = UserCreate(email=email, password=password, is_superuser=True,role_id=role_id)
     user = await crud.create_user(session=async_db, user_create=user_in)
     assert user.is_superuser is True
 
 @pytest.mark.asyncio
-async def test_check_user_is_normal_user(async_db: AsyncSession) -> None:
+async def test_check_user_is_normal_user(async_db: AsyncSession, role_id:uuid.UUID) -> None:
     email = random_email()
     password = random_lower_string()
-    user_in = UserCreate(email=email, password=password)
+    user_in = UserCreate(email=email, password=password, role_id=role_id)
     user = await crud.create_user(session=async_db, user_create=user_in)
     assert user.is_superuser is False
 
 @pytest.mark.asyncio
-async def test_get_user(async_db: AsyncSession) -> None:
+async def test_get_user(async_db: AsyncSession, role_id:uuid.UUID) -> None:
     email = random_email()
     password = random_lower_string()
-    user_in = UserCreate(email=email, password=password)
+    user_in = UserCreate(email=email, password=password, role_id=role_id)
     user = await crud.create_user(session=async_db, user_create=user_in)
     user_2 = await async_db.get(User, user.id)
     assert user_2
@@ -72,10 +74,10 @@ async def test_get_user(async_db: AsyncSession) -> None:
     assert jsonable_encoder(user) == jsonable_encoder(user_2)
 
 @pytest.mark.asyncio
-async def test_update_user(async_db: AsyncSession) -> None :
+async def test_update_user(async_db: AsyncSession, role_id:uuid.UUID) -> None :
     email = random_email()
     password = random_lower_string()
-    user_in = UserCreate(email=email, password=password)
+    user_in = UserCreate(email=email, password=password, role_id=role_id)
     user = await crud.create_user(session=async_db, user_create=user_in)
     new_password = random_lower_string()
     user_in_update = UserUpdate(password=new_password, is_superuser=True)

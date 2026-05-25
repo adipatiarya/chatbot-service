@@ -1,10 +1,12 @@
 
+import uuid
+
 import pytest_asyncio
 from sqlalchemy import delete
 from app.models import Base
 from app.core.config import settings
 from app.core.db import init_db
-
+from app import crud
 from sqlalchemy.ext.asyncio import (
     AsyncSession,
     async_sessionmaker,
@@ -12,7 +14,7 @@ from sqlalchemy.ext.asyncio import (
 )
 from sqlalchemy.pool import NullPool
 
-from app.models.user import User
+from app.models.user import User, Role, RoleCreate, UserRoleLink
 
 
 async_engine = create_async_engine(
@@ -35,6 +37,7 @@ async def async_db_engine():
         await conn.run_sync(Base.metadata.drop_all)
 
 
+
 @pytest_asyncio.fixture(scope="function")
 async def async_db(async_db_engine):
     async_session = async_sessionmaker(
@@ -46,8 +49,16 @@ async def async_db(async_db_engine):
     )
 
     async with async_session() as session:
-        await init_db(session)
         await session.commit()
         yield session
+        await session.execute(delete(UserRoleLink))
         await session.execute(delete(User))
+        await session.execute(delete(Role))
         await session.commit()
+
+@pytest_asyncio.fixture(scope="function")
+async def role_id(async_db: AsyncSession)->uuid.UUID:
+    role_in = RoleCreate(name='admina', description='Hello Role')
+    role = await crud.create_role(session=async_db, role_create=role_in)
+    await init_db(async_db, role.id)
+    return role.id
