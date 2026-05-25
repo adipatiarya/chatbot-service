@@ -32,6 +32,16 @@
             "module": "pytest",
             "args": ["-s", "-v", "tests/api/routes/test_users.py"],
             "cwd": "${workspaceFolder}/backend"
-        }
+        },
+
+           {
+            "name": "Test Services",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "pytest",
+            "args": ["-s", "-v", "tests/services/"],
+            "cwd": "${workspaceFolder}/backend"
+        },
+
     ]
 }
