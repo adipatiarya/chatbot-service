@@ -6,7 +6,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 
 
 from app import crud
-from app.models import UserPublic, UserUpdate
+from app.models.user import UserPublic, UserUpdate
 from app.generic import Token, Message, NewPassword
 
 from app.api.deps import SessionDep, CurrentUser

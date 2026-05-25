@@ -12,7 +12,7 @@ from jwt.exceptions import InvalidTokenError
 
 from app.core.db import engine
 from app.core.config import settings
-from app.models import User
+from app.models.user import User
 from app.core import security
 from app.generic import TokenPayload, UserPermission
 

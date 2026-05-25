@@ -1,39 +1,53 @@
-from collections.abc import Generator
 
-import pytest
-from fastapi.testclient import TestClient
-from sqlmodel import Session, delete
-
+import pytest_asyncio
+from sqlalchemy import delete
+from app.models import Base
 from app.core.config import settings
-from app.core.db import engine, init_db
-from app.main import app
-from app.models import User, Project
-from tests.helpers.user import authentication_token_from_email
-from tests.helpers.util import get_superuser_token_headers
+from app.core.db import init_db
 
-#TEST MODE
+from sqlalchemy.ext.asyncio import (
+    AsyncSession,
+    async_sessionmaker,
+    create_async_engine,
+)
+from sqlalchemy.pool import NullPool
 
-@pytest.fixture(scope="session", autouse=True)
-def sess() -> Generator[Session, None, None]:
-    with Session(engine) as session:
-        init_db(session)
-        yield session
-        session.exec(delete(User))
-        session.exec(delete(Project))
-        session.commit()
+from app.models.user import User
 
-@pytest.fixture(scope="module")
-def client() -> Generator[TestClient, None, None]:
-    with TestClient(app) as c:
-        yield c
 
-@pytest.fixture(scope="module")
-def superuser_token_headers(client: TestClient) -> dict[str, str]:
-    return get_superuser_token_headers(client=client)
+async_engine = create_async_engine(
+    url=str(settings.SQLALCHEMY_DATABASE_URI),
+    echo=False,
+    poolclass=NullPool,
+)
 
-@pytest.fixture()
-def normal_user_token_headers(client: TestClient, sess: Session):
-    return authentication_token_from_email( 
-        client=client, email=settings.EMAIL_TEST_USER, db=sess
+
+# Drop all tables after each test
+@pytest_asyncio.fixture(scope="function")
+async def async_db_engine():
+    async with async_engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+
+    yield async_engine
+
+    async with async_engine.begin() as conn:
+        
+        await conn.run_sync(Base.metadata.drop_all)
+
+
+@pytest_asyncio.fixture(scope="function")
+async def async_db(async_db_engine):
+    async_session = async_sessionmaker(
+        expire_on_commit=False,
+        autocommit=False,
+        autoflush=False,
+        bind=async_db_engine,
+        class_=AsyncSession,
     )
-    
+
+    async with async_session() as session:
+        await init_db(session)
+        await session.commit()
+        yield session
+        await session.execute(delete(User))
+        await session.commit()

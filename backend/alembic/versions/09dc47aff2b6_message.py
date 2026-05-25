@@ -1,8 +1,8 @@
-"""create users table
+"""message
 
-Revision ID: 5701bb4697b4
-Revises: 
-Create Date: 2026-05-17 17:03:50.719040
+Revision ID: 09dc47aff2b6
+Revises: 6c3e0c9d7862
+Create Date: 2026-05-25 16:05:50.400903
 
 """
 from typing import Sequence, Union
@@ -10,11 +10,12 @@ from typing import Sequence, Union
 from alembic import op
 import sqlalchemy as sa
 import sqlmodel
+from pgvector.sqlalchemy import Vector
 
 
 # revision identifiers, used by Alembic.
-revision: str = '5701bb4697b4'
-down_revision: Union[str, Sequence[str], None] = None
+revision: str = '09dc47aff2b6'
+down_revision: Union[str, Sequence[str], None] = '6c3e0c9d7862'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

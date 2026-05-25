@@ -2,7 +2,7 @@ from fastapi import testclient as fa
 from sqlmodel import Session
 
 from app.core.config import settings
-from app.models import UserCreate, UserUpdate
+from app.models.user import UserCreate, UserUpdate
 from app import crud
 
 from tests.helpers.util import random_lower_string
