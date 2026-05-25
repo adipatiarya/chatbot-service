@@ -36,6 +36,7 @@ class Settings(BaseSettings):
 
     PROJECT_NAME:str
     FRONTEND_HOST:str
+    DEFAULT_ROLE:str
 
 
     SMTP_TLS: bool = True

@@ -59,7 +59,7 @@ async def async_db(async_db_engine):
 
 @pytest_asyncio.fixture(scope="function")
 async def role_id(async_db: AsyncSession)->uuid.UUID:
-    role_in = RoleCreate(name='admina', description='Hello Role')
+    role_in = RoleCreate(name=settings.DEFAULT_ROLE, description='Hello Role')
     role = await crud.create_role(session=async_db, role_create=role_in)
     await init_db(async_db, role.id)
     return role.id
