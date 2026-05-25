@@ -1,5 +1,6 @@
 import uuid
 
+from sqlalchemy.orm import selectinload
 from sqlmodel import  select
 
 from app.models.user import UserCreate, User, UserUpdate
@@ -97,3 +98,8 @@ async def create_role(*, session:  AsyncSession, role_create: RoleCreate) -> Rol
     await session.commit()
     await session.refresh(db_obj)
     return db_obj
+
+async def get_user_with_roles(*,session: AsyncSession, user_id: uuid.UUID) -> User | None:
+    result = await session.execute(select(User).options(selectinload(User.roles)).where(User.id == user_id))
+    user = result.scalars().first()
+    return user
