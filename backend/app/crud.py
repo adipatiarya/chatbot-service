@@ -2,7 +2,9 @@ import uuid
 
 from sqlmodel import  select
 
-from app.models.user import UserCreate, User, UserUpdate, Role, RoleCreate, UserRoleLink
+from app.models.user import UserCreate, User, UserUpdate
+from app.models.role import Role, RoleCreate
+from app.models.user_role import UserRole
 from app.utils import logger
 from app.core.security import get_password_hash, verify_password
 from typing import Any
@@ -10,7 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 DUMMY_HASH = "$argon2id$v=19$m=65536,t=3,p=4$MjQyZWE1MzBjYjJlZTI0Yw$YTU4NGM5ZTZmYjE2NzZlZjY0ZWY3ZGRkY2U2OWFjNjk"
 
-async def assign_role_to_user(*, session: AsyncSession, user_id: uuid.UUID, role_id: uuid.UUID) -> UserRoleLink:
+async def assign_role_to_user(*, session: AsyncSession, user_id: uuid.UUID, role_id: uuid.UUID) -> UserRole:
     try:
         # cek apakah user ada
         user = await session.get(User, user_id)
@@ -23,7 +25,7 @@ async def assign_role_to_user(*, session: AsyncSession, user_id: uuid.UUID, role
             raise ValueError(f"Role dengan id {role_id} tidak ditemukan")
 
         # buat link
-        link = UserRoleLink(user_id=user_id, role_id=role_id)
+        link = UserRole(user_id=user_id, role_id=role_id)
         session.add(link)
         await session.commit()
         await session.refresh(link)

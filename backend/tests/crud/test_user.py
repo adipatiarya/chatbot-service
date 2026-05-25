@@ -27,7 +27,6 @@ async def test_authenticate_user(async_db: AsyncSession, role_id:uuid.UUID) -> N
     user_in = UserCreate(email=email, password=password, role_id=role_id)
     user = await crud.create_user(session=async_db, user_create=user_in)
     authenticate_user = await crud.authenticate(session=async_db, email=email, password=password)
-
     assert authenticate_user
     assert user.email == authenticate_user.email
 

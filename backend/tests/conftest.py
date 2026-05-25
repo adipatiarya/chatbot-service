@@ -14,8 +14,9 @@ from sqlalchemy.ext.asyncio import (
 )
 from sqlalchemy.pool import NullPool
 
-from app.models.user import User, Role, RoleCreate, UserRoleLink
-
+from app.models.user import User
+from app.models.role import Role, RoleCreate
+from app.models.user_role import UserRole
 
 async_engine = create_async_engine(
     url=str(settings.SQLALCHEMY_DATABASE_URI),
@@ -51,7 +52,7 @@ async def async_db(async_db_engine):
     async with async_session() as session:
         await session.commit()
         yield session
-        await session.execute(delete(UserRoleLink))
+        await session.execute(delete(UserRole))
         await session.execute(delete(User))
         await session.execute(delete(Role))
         await session.commit()
