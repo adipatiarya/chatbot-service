@@ -44,7 +44,9 @@ async def test_update_user_service(async_db: AsyncSession, role:str) -> None:
     user_in = UserCreate(email=email, password=password, role=role)
     user = await service.create_user(user_in)
 
-    role_in = RoleCreate(name='bagus')
+    role_dummy:str = "Burio"
+
+    role_in = RoleCreate(name=role_dummy)
     role_new = await service.create_role(role_in)
 
     user_in_update = UserUpdate(full_name='Kirun', role=role_new.name)
@@ -55,5 +57,5 @@ async def test_update_user_service(async_db: AsyncSession, role:str) -> None:
     assert user_2
     assert 'Kirun' == user_2.full_name
 
-    assert any('bagus' == role.name for role in user_2.roles)
+    assert any(role_dummy.lower() == role.name for role in user_2.roles)
     
