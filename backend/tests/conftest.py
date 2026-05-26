@@ -19,7 +19,7 @@ from app.api.deps import get_user_service, get_db
 from app.main import app
 
 async_engine = create_async_engine(
-    url=str(settings.SQLALCHEMY_DATABASE_URI),
+    url='postgresql+asyncpg://postgres:postgres@localhost:5432/fastapi_db_test',
     echo=False,
     poolclass=NullPool,
 )
@@ -66,6 +66,7 @@ async def role(async_db: AsyncSession)->str:
 
 @pytest_asyncio.fixture(scope="function")
 async def role_user(async_db: AsyncSession)->str:
+    
     role_in = RoleCreate(name=settings.DEFAULT_ROLE_USER, description='Hello Role User')
     service = get_user_service(async_db)
     role = await service.create_role(role_in)
