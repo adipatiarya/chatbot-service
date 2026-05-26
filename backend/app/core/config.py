@@ -37,6 +37,7 @@ class Settings(BaseSettings):
     PROJECT_NAME:str
     FRONTEND_HOST:str
     DEFAULT_ROLE:str
+    ALGORITHM:str='HS256'
 
 
     SMTP_TLS: bool = True

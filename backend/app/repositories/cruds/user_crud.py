@@ -4,7 +4,7 @@ from sqlalchemy.orm import selectinload
 from sqlmodel import select
 
 from app.models.user import User
-from backend.app.cruds.crud import Crud
+from app.repositories.cruds.crud import Crud
 
 class UserCrud(Crud[User]):
     def __init__(self, session):

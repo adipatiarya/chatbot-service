@@ -1,19 +1,46 @@
 import uuid
+import jwt
+from datetime import timedelta, datetime, timezone
+from typing import Any
+
+from pwdlib import PasswordHash
+from pwdlib.hashers.argon2 import Argon2Hasher
+from pwdlib.hashers.bcrypt import BcryptHasher
+from app.core.config import settings
 
 from sqlalchemy import delete
-from sqlmodel import select
 
-from app.cruds.user_crud import UserCrud
-from app.cruds.role_crud import RoleCrud
+from app.repositories.cruds.user_crud import UserCrud
+from app.repositories.cruds.role_crud import RoleCrud
+
+
 from app.models.user import User, UserCreate, UserUpdate
-from app.core.security import get_password_hash
 from app.models.user_role import UserRole
 from app.models.role import RoleCreate, Role
+
 
 class UserService:
     def __init__(self, user_crud: UserCrud, role_crud: RoleCrud):
         self.user_crud = user_crud
         self.role_crud = role_crud
+    
+    @property
+    def password_hash(self):
+         self = PasswordHash((Argon2Hasher(),BcryptHasher()))
+         return self
+    
+    def get_password_hash(self, password: str) -> str:
+
+        return self.password_hash.hash(password)
+
+    def verify_password(self, plain_password:str, hashed_password:str) -> tuple[bool, str | None] :
+        return self.password_hash.verify_and_update(plain_password, hashed_password)
+
+    def create_access_token(self, subject:str | Any, expires_delta:timedelta) -> str:
+        expire = datetime.now(timezone.utc) + expires_delta
+        to_encode = {"exp": expire, "sub": str(subject)}
+        encoded_jwt = jwt.encode(to_encode, key=settings.SECRET_KEY, algorithm=settings.ALGORITHM)
+        return encoded_jwt
 
     async def assign_role(self, user_id: uuid.UUID, role_name: str) -> UserRole:
 
@@ -42,7 +69,7 @@ class UserService:
     async def create_user(self, user_create: UserCreate) -> User:
         user_model = User.model_validate(
             user_create,
-            update={"hashed_password": get_password_hash(user_create.password)},
+            update={"hashed_password": self.get_password_hash(user_create.password)},
         )
         user = await self.user_crud.add(user_model)
 
@@ -54,7 +81,7 @@ class UserService:
         extra_data = {}
         if "password" in user_data:
             password = user_data["password"]
-            hashed_password = get_password_hash(password)
+            hashed_password = self.get_password_hash(password)
             extra_data["hashed_password"] = hashed_password
         if "role" in user_data:
             await self.delete_all_role(db_user.id)
@@ -70,3 +97,15 @@ class UserService:
         role_model = Role.model_validate(role_create)
         role = await self.role_crud.add(role_model)
         return role
+
+    async def authenticate(self, email:str, password:str) -> User | None:
+        db_user = await self.user_crud.get_by_email(email)
+        if not db_user:
+            return None
+        verified, update_password_hash = self.verify_password(password, db_user.hashed_password)
+        if not verified:
+            return None
+        if update_password_hash:
+            db_user.hashed_password = update_password_hash
+            await self.user_crud.add(db_user)
+        return db_user

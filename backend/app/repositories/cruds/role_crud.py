@@ -2,7 +2,7 @@
 from sqlmodel import func, select
 
 from app.models.role import Role
-from app.cruds.crud import Crud
+from app.repositories.cruds.crud import Crud
 
 
 class RoleCrud(Crud[Role]):

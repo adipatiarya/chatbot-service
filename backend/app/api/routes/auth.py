@@ -17,7 +17,7 @@ from app.utils import (
     generate_reset_password_email,
     verify_password_reset_token,
 )
-from app.repo.email import send_email
+from backend.app.services.email_service import send_email
 
 router = APIRouter(tags=["Authentication"], prefix="/auth")
 

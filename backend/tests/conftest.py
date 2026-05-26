@@ -1,12 +1,8 @@
 
-import uuid
-
 import pytest_asyncio
 from sqlalchemy import delete
 from app.models import Base
 from app.core.config import settings
-from app.core.db import init_db
-from app import crud
 from sqlalchemy.ext.asyncio import (
     AsyncSession,
     async_sessionmaker,
@@ -17,6 +13,8 @@ from sqlalchemy.pool import NullPool
 from app.models.user import User
 from app.models.role import Role, RoleCreate
 from app.models.user_role import UserRole
+from app.api.deps import get_user_service
+from app.core.db import init_db
 
 async_engine = create_async_engine(
     url=str(settings.SQLALCHEMY_DATABASE_URI),
@@ -60,6 +58,7 @@ async def async_db(async_db_engine):
 @pytest_asyncio.fixture(scope="function")
 async def role(async_db: AsyncSession)->str:
     role_in = RoleCreate(name=settings.DEFAULT_ROLE, description='Hello Role')
-    role = await crud.create_role(session=async_db, role_create=role_in)
-    #await init_db(async_db, role.id)
+    service = get_user_service(async_db)
+    role = await service.create_role(role_in)
+    await init_db(service, role.name)
     return role.name

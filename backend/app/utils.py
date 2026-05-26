@@ -7,7 +7,6 @@ from dataclasses import dataclass
 
 
 from app.core.config import settings
-from app.core import security
 from jinja2 import Template
 
 
@@ -48,7 +47,7 @@ def generate_password_reset_token(*, email:str) -> str :
     expires = now + delta
     exp = expires.timestamp()
     payload = {"exp": exp, "nbf": now, "sub": email}
-    encoded_jwt = jwt.encode(payload, settings.SECRET_KEY, algorithm=security.ALGORITHM)
+    encoded_jwt = jwt.encode(payload, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
     return encoded_jwt
 
 

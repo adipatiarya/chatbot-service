@@ -13,8 +13,12 @@ from jwt.exceptions import InvalidTokenError
 from app.core.db import engine
 from app.core.config import settings
 from app.models.user import User
-from app.core import security
 from app.generic import TokenPayload, UserPermission
+from backend.app.repositories.cruds.role_crud import RoleCrud
+from backend.app.repositories.cruds.user_crud import UserCrud
+from app.services.user_service import UserService
+
+from sqlalchemy.ext.asyncio import AsyncSession
 
 def get_db() -> Generator[Session, None, None]:
     with Session(engine) as sess:
@@ -34,7 +38,7 @@ token: str = Depends(reusable_oauth2)
 def get_current_user(sess: SessionDep, token: TokenDep):
    
     try:
-        payload = jwt.decode(token, key=settings.SECRET_KEY, algorithms=[security.ALGORITHM])
+        payload = jwt.decode(token, key=settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
         token_data = TokenPayload(**payload)
 
     except (InvalidTokenError, ValidationError):
@@ -90,3 +94,8 @@ def get_current_user_superadmin(current_user: CurrentUser):
     if not current_user.is_superuser:
         raise HTTPException(status_code=403, detail='The user doesn\'t have enough privileges')
     return current_user
+
+def get_user_service(session: AsyncSession) -> UserService:
+    user_repo = UserCrud(session)
+    role_repo = RoleCrud(session)
+    return UserService(user_repo, role_repo)
