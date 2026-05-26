@@ -56,7 +56,7 @@ async def test_get_access_token(client: AsyncClient) -> None:
     assert r.status_code == 200
     assert "access_token" in tokens
     assert tokens["access_token"]
-
+@pytest.mark.asyncio
 async def test_get_access_token_incorrect_password(client: AsyncClient) -> None:
     login_data = {
         "username": settings.FIRST_SUPERUSER,
@@ -65,7 +65,7 @@ async def test_get_access_token_incorrect_password(client: AsyncClient) -> None:
     r = await client.post(f"{settings.API_V1_STR}/auth/access-token", data=login_data)
     assert r.status_code == 400
 
-
+@pytest.mark.asyncio
 async def test_recovery_password(client: AsyncClient, normal_user_token_headers: dict[str, str]) -> None:
     
     with(
@@ -80,18 +80,19 @@ async def test_recovery_password(client: AsyncClient, normal_user_token_headers:
         assert r.json() == {
             "message":"If that email is registered, we sent a password recovery link"
         }
-        
-# def test_recovery_password_user_not_exist(client: TestClient, normal_user_token_headers: dict[str, str]) -> None:
-    
-#     email = "tesddt@example.com"
-#     r = client.post(f"{settings.API_V1_STR}/auth/password-recovery/{email}", headers=normal_user_token_headers)
-    
-#     assert r.status_code == 200
 
-#     # Return 200 juga supaya tidak ada percobaan email
-#     assert r.json() == {
-#         "message":"If that email is registered, we sent a password recovery link"
-#     }
+@pytest.mark.asyncio     
+async def test_recovery_password_user_not_exist(client: AsyncClient, normal_user_token_headers: dict[str, str]) -> None:
+    
+    email = "tesddt@example.com"
+    r = await client.post(f"{settings.API_V1_STR}/auth/password-recovery/{email}", headers=normal_user_token_headers)
+    
+    assert r.status_code == 200
+
+    # Return 200 juga supaya tidak ada percobaan email
+    assert r.json() == {
+        "message":"If that email is registered, we sent a password recovery link"
+    }
 
 # def test_reset_password(client:TestClient, sess:Session) -> None:
 #     email = random_email()
