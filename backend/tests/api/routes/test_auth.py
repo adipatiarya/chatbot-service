@@ -1,17 +1,15 @@
-from httpx import AsyncClient
 import pytest
-from app.utils import logger
+from httpx import AsyncClient
 from unittest.mock import patch
-# from sqlmodel import Session
-# from fastapi.testclient import TestClient
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.utils import generate_password_reset_token
 from app.core.config import settings
-# from app.models.user import UserCreate
-# from app import crud
-# from app.utils import generate_password_reset_token
+from app.api.deps import get_user_service
+from app.models.user import UserCreate
 
-# from app.core.security import verify_password
-# from tests.helpers.util import random_email, random_lower_string
+from tests.helpers.util import random_email, random_lower_string
+
 @pytest.mark.asyncio
 async def test_get_users_superuser_me(client: AsyncClient, superuser_token_headers: dict[str, str]) -> None:
     r = await client.get(f"{settings.API_V1_STR}/auth/me", headers=superuser_token_headers)
@@ -93,39 +91,51 @@ async def test_recovery_password_user_not_exist(client: AsyncClient, normal_user
     assert r.json() == {
         "message":"If that email is registered, we sent a password recovery link"
     }
+@pytest.mark.asyncio
+async def test_reset_password(client:AsyncClient, async_db: AsyncSession, role_user) -> None:
+    email = random_email()
+    password = random_lower_string()
+    new_password = random_lower_string()
+    service = get_user_service(async_db)
 
-# def test_reset_password(client:TestClient, sess:Session) -> None:
-#     email = random_email()
-#     password = random_lower_string()
-#     new_password = random_lower_string()
+    #simulasi user
+    user_in =  UserCreate(
+        email=email,
+        full_name="Test User",
+        password=password,
+        is_active=True,
+        role=role_user
+    )
+    await service.create_user(user_in)
 
-#     user_create =  UserCreate(
-#         email=email,
-#         full_name="Test User",
-#         password=password,
-#         is_active=True,
-#         is_superuser=False 
-#     )
+    #cek user yang baru dibuat
+    user = await service.user_crud.get_by_email(email)
+    #pastikan object terbentuk
+    assert user
+    #pastion email nya sama
+    assert email == user.email
 
-#     user = crud.create_user(session=sess, user_create=user_create)
-#     token = generate_password_reset_token(email=email)
-#     data = {"new_password": new_password, "token":token}
+    token = generate_password_reset_token(email=email)
+    data = {"new_password": new_password, "token":token}
+  
+    r = await client.post(f"{settings.API_V1_STR}/auth/reset-password", json=data)
 
-#     r = client.post(f"{settings.API_V1_STR}/auth/reset-password/", json=data)
 
-#     assert r.status_code == 200
-#     assert r.json() == {"message":"Password updated successfully"}
+    assert r.status_code == 200
+    assert r.json() == {"message":"Password updated successfully"}
 
-#     sess.refresh(user)
-#     verified, _ = verify_password(plain_password=new_password, hashed_password=user.hashed_password)
-#     assert verified
+    await async_db.refresh(user)
 
-# def test_reset_password_invalid_token(client: TestClient) -> None:
-#     data = {"new_password":"changetus", "token":"invalid"}
-#     r = client.post(f"{settings.API_V1_STR}/auth/reset-password/", json=data)
-#     resp = r.json()
+    verified, _ = service.verify_password(new_password, user.hashed_password)
+    assert verified
+    
+@pytest.mark.asyncio
+async def test_reset_password_invalid_token(client: AsyncClient) -> None:
+    data = {"new_password":"changetus", "token":"invalid"}
+    r = await client.post(f"{settings.API_V1_STR}/auth/reset-password", json=data)
+    resp = r.json()
 
-#     assert "detail" in resp
-#     assert r.status_code == 400
-#     assert resp["detail"] == "Invalid token"
+    assert "detail" in resp
+    assert r.status_code == 400
+    assert resp["detail"] == "Invalid token"
 

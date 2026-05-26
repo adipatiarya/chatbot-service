@@ -7,9 +7,13 @@ from fastapi.security import OAuth2PasswordRequestForm
 from app.api.deps import CurrentUser, get_user_service
 from app.api.deps import SessionDep
 from app.core.config import settings
-from app.generic import Message, Token
-from app.models.user import UserPublic
-from app.utils import generate_password_reset_token, generate_reset_password_email
+from app.generic import Message, NewPassword, Token
+from app.models.user import UserPublic, UserUpdate
+from app.utils import (
+    generate_password_reset_token, 
+    generate_reset_password_email, 
+    verify_password_reset_token
+)
 
 from app.services.email_service import EmailService
 
@@ -49,3 +53,24 @@ async def password_recovery(email: str, sess: SessionDep)-> Message:
 
 
     return Message(message="If that email is registered, we sent a password recovery link")
+
+@router.post("/reset-password")
+async def reset_password(sess:SessionDep, body: NewPassword):
+    service = get_user_service(sess)
+  
+    email = verify_password_reset_token(token=body.token)
+    if not email:
+        raise HTTPException(status_code=400, detail="Invalid token")
+    user = await service.user_crud.get_by_email(email)
+    
+    if not user:
+        # Jangan di proses jika usernya tidak ada
+        raise HTTPException(status_code=400, detail="Invalid token")
+    elif not user.is_active:
+        raise HTTPException(status_code=400, detail="Inactive user")
+    user_un_update = UserUpdate(password=body.new_password)
+
+    await service.update_user(user, user_un_update)
+    return {
+        "message":"Password updated successfully"
+    }
