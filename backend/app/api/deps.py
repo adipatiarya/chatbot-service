@@ -2,6 +2,7 @@ import jwt
 
 from collections.abc import Generator
 from typing import Annotated, List
+from sqlalchemy.orm import sessionmaker
 from sqlmodel import Session
 
 from fastapi import Depends, HTTPException,status
@@ -14,16 +15,20 @@ from app.core.db import engine
 from app.core.config import settings
 from app.models.user import User
 from app.generic import TokenPayload, UserPermission
-from backend.app.repositories.cruds.role_crud import RoleCrud
-from backend.app.repositories.cruds.user_crud import UserCrud
+from app.repositories.cruds.role_crud import RoleCrud
+from app.repositories.cruds.user_crud import UserCrud
 from app.services.user_service import UserService
-
 from sqlalchemy.ext.asyncio import AsyncSession
 
-def get_db() -> Generator[Session, None, None]:
-    with Session(engine) as sess:
-        yield sess
+AsyncSessionLocal = sessionmaker(
+    bind=engine,
+    class_=AsyncSession,
+    expire_on_commit=False
+)
 
+async def get_db():
+    async with AsyncSessionLocal() as session:
+        yield session
         
 reusable_oauth2 = OAuth2PasswordBearer(
     tokenUrl=f"{settings.API_V1_STR}/login/access-token"
@@ -31,11 +36,16 @@ reusable_oauth2 = OAuth2PasswordBearer(
 
 
 
-SessionDep = Annotated[Session, Depends(get_db)]
+SessionDep = Annotated[AsyncSession, Depends(get_db)]
 TokenDep = Annotated[str, Depends(reusable_oauth2)]
 token: str = Depends(reusable_oauth2)
 
-def get_current_user(sess: SessionDep, token: TokenDep):
+def get_user_service(session: AsyncSession) -> UserService:
+    user_repo = UserCrud(session)
+    role_repo = RoleCrud(session)
+    return UserService(user_repo, role_repo)
+
+async def get_current_user(sess: SessionDep, token: TokenDep):
    
     try:
         payload = jwt.decode(token, key=settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
@@ -46,8 +56,9 @@ def get_current_user(sess: SessionDep, token: TokenDep):
             status_code=status.HTTP_403_FORBIDDEN,
             detail='could not credential'
         )
-    
-    user = sess.get(User, token_data.sub)
+    service = get_user_service(sess)
+
+    user = await service.user_crud.get_user_roles(token_data.sub)
     if not user:
         raise HTTPException(status_code=404, detail='User not eksis')
     if not user.is_active:
@@ -95,7 +106,3 @@ def get_current_user_superadmin(current_user: CurrentUser):
         raise HTTPException(status_code=403, detail='The user doesn\'t have enough privileges')
     return current_user
 
-def get_user_service(session: AsyncSession) -> UserService:
-    user_repo = UserCrud(session)
-    role_repo = RoleCrud(session)
-    return UserService(user_repo, role_repo)

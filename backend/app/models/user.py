@@ -1,8 +1,8 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, List, Any, Optional
 import uuid
 from datetime import datetime
 from sqlalchemy import DateTime
-from pydantic import EmailStr
+from pydantic import EmailStr, computed_field
 from sqlmodel import  Field, Relationship
 
 from app.models import Base
@@ -45,4 +45,9 @@ class UserUpdate(UserBase):
 class UserPublic(UserBase):
     id: uuid.UUID
     created_at: datetime | None = None
-    
+    roles:List["Any"] = []
+
+    @computed_field
+    @property
+    def role(self) -> Optional[str]:
+        return self.roles[0].name if self.roles else None
