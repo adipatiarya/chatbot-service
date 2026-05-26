@@ -2,7 +2,7 @@ import uuid
 
 from sqlmodel import Field
 
-from app.models import Base
+from sqlmodel import  Field, Relationship, SQLModel as Base
 
 class UserRole(Base, table=True):
     user_id: uuid.UUID = Field(

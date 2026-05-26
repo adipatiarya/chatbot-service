@@ -5,7 +5,7 @@ from sqlalchemy import DateTime
 from pydantic import EmailStr, computed_field
 from sqlmodel import  Field, Relationship
 
-from app.models import Base
+from sqlmodel import  Field, Relationship, SQLModel as Base
 from app.utils import get_datetime_utc
 from app.models.user_role import UserRole
 

@@ -3,7 +3,8 @@ from httpx import ASGITransport, AsyncClient
 import pytest
 import pytest_asyncio
 from sqlalchemy import delete
-from app.models import Base
+from sqlmodel import   SQLModel as Base
+
 from app.core.config import settings
 from sqlalchemy.ext.asyncio import (
     AsyncSession,
