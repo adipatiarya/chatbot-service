@@ -8,7 +8,7 @@ class EmailService:
         self.subject = subject
         self.html_content = html_content
         
-    def send_email(self) -> None:
+    def send(self) -> None:
       assert settings.emails_enabled, "no provided configuration for email variables"
       message = emails.Message(subject=self.subject,html=self.html_content,mail_from=(settings.EMAILS_FROM_NAME, settings.EMAILS_FROM_EMAIL))
       smtp_options = {"host": settings.SMTP_HOST, "port": settings.SMTP_PORT}

@@ -1,7 +1,7 @@
 from httpx import AsyncClient
 import pytest
 from app.utils import logger
-# from unittest.mock import patch
+from unittest.mock import patch
 # from sqlmodel import Session
 # from fastapi.testclient import TestClient
 
@@ -65,30 +65,21 @@ async def test_get_access_token_incorrect_password(client: AsyncClient) -> None:
     r = await client.post(f"{settings.API_V1_STR}/auth/access-token", data=login_data)
     assert r.status_code == 400
 
-# def test_user_access_token(client: TestClient, superuser_token_headers: dict[str, str]) -> None:
-#     r = client.post(
-#         f"{settings.API_V1_STR}/auth/test-token",
-#         headers=superuser_token_headers
-#         )
-#     result = r.json()
 
-#     assert r.status_code == 200
-#     assert "email" in result
-
-# def test_recovery_password(client: TestClient, normal_user_token_headers: dict[str, str]) -> None:
+async def test_recovery_password(client: AsyncClient, normal_user_token_headers: dict[str, str]) -> None:
     
-#     with(
-#         patch("app.core.config.settings.SMTP_HOST", "smtp.example.com"),
-#         patch("app.core.config.settings.SMTP_USER", "admin@example.com"),
-#         patch("app.core.config.settings.SMTP_PASSWORD", "hello cil"),
+    with(
+        patch("app.core.config.settings.SMTP_HOST", "smtp.example.com"),
+        patch("app.core.config.settings.SMTP_USER", "admin@example.com"),
+        patch("app.core.config.settings.SMTP_PASSWORD", "hello cil"),
        
-#     ):
-#         email = "test@example.com"
-#         r = client.post(f"{settings.API_V1_STR}/auth/password-recovery/{email}", headers=normal_user_token_headers)
-#         assert r.status_code == 200
-#         assert r.json() == {
-#             "message":"If that email is registered, we sent a password recovery link"
-#         }
+    ):
+        email = "test@example.com"
+        r = await client.post(f"{settings.API_V1_STR}/auth/password-recovery/{email}", headers=normal_user_token_headers)
+        assert r.status_code == 200
+        assert r.json() == {
+            "message":"If that email is registered, we sent a password recovery link"
+        }
         
 # def test_recovery_password_user_not_exist(client: TestClient, normal_user_token_headers: dict[str, str]) -> None:
     
