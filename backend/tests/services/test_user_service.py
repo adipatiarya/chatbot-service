@@ -1,3 +1,4 @@
+from fastapi.encoders import jsonable_encoder
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -20,6 +21,19 @@ async def test_create_user_service(async_db: AsyncSession, role:str) -> None:
     assert user.email == email
     assert hasattr(user, "roles")
     assert any( settings.DEFAULT_ROLE == role.name for role in user.roles)
+@pytest.mark.asyncio
+async def test_get_user_service(async_db: AsyncSession, role:str) -> None:
+    email = random_email()
+    password = random_lower_string()
+    service = get_user_service(async_db)
+    user_in = UserCreate(email=email, password=password, role=role)
+    user = await service.create_user(user_in)
+
+    user_2 = await service.user_crud.get_by_id(user.id)
+    print(user_2.roles)
+    assert user_2
+    assert user.email == user_2.email
+    assert jsonable_encoder(user) == jsonable_encoder(user_2)
     
 async def test_update_user_service(async_db: AsyncSession, role:str) -> None:
     
