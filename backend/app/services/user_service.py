@@ -6,9 +6,8 @@ from typing import Any
 from pwdlib import PasswordHash
 from pwdlib.hashers.argon2 import Argon2Hasher
 from pwdlib.hashers.bcrypt import BcryptHasher
+from sqlmodel import delete
 from app.core.config import settings
-
-from sqlalchemy import delete
 
 from app.repositories.cruds.user_crud import UserCrud
 from app.repositories.cruds.role_crud import RoleCrud

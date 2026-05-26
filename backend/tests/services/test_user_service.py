@@ -48,7 +48,7 @@ async def test_update_user_service(async_db: AsyncSession, role:str) -> None:
     
 
 @pytest.mark.asyncio
-async def test_authenticate_user_user(async_db: AsyncSession, role:str) -> None:
+async def test_authenticate_user_service(async_db: AsyncSession, role:str) -> None:
     email = random_email()
     password = random_lower_string()
 
@@ -56,6 +56,50 @@ async def test_authenticate_user_user(async_db: AsyncSession, role:str) -> None:
     user_in = UserCreate(email=email, password=password, role=role)
 
     user = await service.create_user(user_create=user_in)
-    authenticate_user = await service.authenticate(email=email, password=password)
+    authenticate_user = await service.authenticate(email, password)
     assert authenticate_user
     assert user.email == authenticate_user.email
+
+@pytest.mark.asyncio
+async def test_not_authenticate_user_service(async_db: AsyncSession) -> None:
+    email = random_email()
+    password = random_lower_string()
+
+    service = get_user_service(async_db)
+
+    user = await service.authenticate(email, password)
+    assert user is None
+
+@pytest.mark.asyncio
+async def test_check_user_is_active_inactive_service(async_db: AsyncSession, role:str) -> None:
+    email = random_email()
+    password = random_lower_string()
+
+    service = get_user_service(async_db)
+    user_in = UserCreate(email=email, password=password, role=role, is_active=False)
+
+    user = await service.create_user(user_create=user_in)
+
+    assert user.is_active is False
+
+@pytest.mark.asyncio
+async def test_check_user_is_superuser_service(async_db: AsyncSession, role:str) -> None:
+    email = random_email()
+    password = random_lower_string()
+
+    service = get_user_service(async_db)
+    user_in = UserCreate(email=email, password=password, role=role, is_superuser=True)
+
+    user = await service.create_user(user_create=user_in)
+    assert user.is_superuser is True
+
+@pytest.mark.asyncio
+async def test_check_user_is_normal_ruser_service(async_db: AsyncSession, role:str) -> None:
+    email = random_email()
+    password = random_lower_string()
+
+    service = get_user_service(async_db)
+    user_in = UserCreate(email=email, password=password, role=role)
+
+    user = await service.create_user(user_create=user_in)
+    assert user.is_superuser is False
