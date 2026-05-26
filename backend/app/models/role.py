@@ -7,9 +7,11 @@ from sqlmodel import  Field, Relationship, SQLModel as Base
 
 from app.utils import get_datetime_utc
 from app.models.user_role import UserRole
+from app.models.role_permision import RolePermission
 
 if TYPE_CHECKING:
     from .user import User
+    from .permission import Permission
 
 class RoleBase(Base):
     name: str = Field(unique=True, index=True, max_length=255)
@@ -24,6 +26,10 @@ class Role(RoleBase, table=True):
      # relasi ke user melalui tabel penghubung
     users: list["User"] = Relationship(
         back_populates="roles", link_model=UserRole
+    )
+    # relasi ke permissions melalui tabel penghubung
+    permissions: list["Permission"] = Relationship(
+        back_populates="roles", link_model=RolePermission
     )
     
 class RoleCreate(RoleBase):

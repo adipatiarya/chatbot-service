@@ -1,11 +1,15 @@
+from typing import TYPE_CHECKING
 import uuid
 from datetime import datetime
 from sqlalchemy import DateTime
 
-from sqlmodel import  Field, SQLModel as Base
+from sqlmodel import  Field, Relationship, SQLModel as Base
 
 from app.utils import get_datetime_utc
-
+from app.models.role_permision import RolePermission
+if TYPE_CHECKING:
+    from .role import Role
+    
 class PermissionBase(Base):
     name: str = Field(unique=True, index=True, max_length=255)
     description: str | None = Field(default=None, max_length=255)
@@ -15,6 +19,10 @@ class Permission(PermissionBase, table=True):
     created_at: datetime | None = Field(
         default_factory=get_datetime_utc,
         sa_type=DateTime(timezone=True),  # type: ignore
+    )
+     # relasi ke permissions melalui tabel penghubung
+    roles: list["Role"] = Relationship(
+        back_populates="permissions", link_model=RolePermission
     )
     
 class PermissionCreate(PermissionBase):
