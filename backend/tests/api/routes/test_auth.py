@@ -41,27 +41,29 @@ async def test_get_users_normal_user_me(client: AsyncClient, normal_user_token_h
     assert current_user['is_superuser'] is False
     assert current_user["email"]== settings.EMAIL_TEST_USER
     assert "role" in current_user
-    assert settings.DEFAULT_ROLE_USER == current_user["role"] 
+    assert settings.DEFAULT_ROLE_USER == current_user["role"]
 
-# def test_get_access_token(client: TestClient) -> None:
-#     login_data = {
-#         "username": settings.FIRST_SUPERUSER,
-#         "password": settings.FIRST_SUPERUSER_PASSWORD
-#     }
-#     r = client.post(f"{settings.API_V1_STR}/auth/access-token", data=login_data)
-#     tokens = r.json()
+@pytest.mark.asyncio
+async def test_get_access_token(client: AsyncClient) -> None:
+    login_data = {
+        "username": str(settings.FIRST_SUPERUSER),
+        "password": str(settings.FIRST_SUPERUSER_PASSWORD)
+    }
+   
+    r = await client.post(f"{settings.API_V1_STR}/auth/access-token", data=login_data)
+    tokens = r.json()
 
-#     assert r.status_code == 200
-#     assert "access_token" in tokens
-#     assert tokens["access_token"]
+    assert r.status_code == 200
+    assert "access_token" in tokens
+    assert tokens["access_token"]
 
-# def test_get_access_token_incorrect_password(client: TestClient) -> None:
-#     login_data = {
-#         "username": settings.FIRST_SUPERUSER,
-#         "password": 'incorectpass'
-#     }
-#     r = client.post(f"{settings.API_V1_STR}/auth/access-token", data=login_data)
-#     assert r.status_code == 400
+async def test_get_access_token_incorrect_password(client: AsyncClient) -> None:
+    login_data = {
+        "username": settings.FIRST_SUPERUSER,
+        "password": 'incorectpass'
+    }
+    r = await client.post(f"{settings.API_V1_STR}/auth/access-token", data=login_data)
+    assert r.status_code == 400
 
 # def test_user_access_token(client: TestClient, superuser_token_headers: dict[str, str]) -> None:
 #     r = client.post(

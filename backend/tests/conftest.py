@@ -74,7 +74,19 @@ async def role_user(async_db: AsyncSession)->str:
 
 
 @pytest_asyncio.fixture(scope="function", autouse=True)
-async def client(async_db):
+async def client(async_db, role):
+    #crete user fisrt
+    service = get_user_service(async_db)
+    user = await service.user_crud.get_by_email(settings.FIRST_SUPERUSER)
+
+    if not user:
+        user_in = UserCreate(
+            email=settings.FIRST_SUPERUSER,
+            password=settings.FIRST_SUPERUSER_PASSWORD,
+            is_superuser=True,
+            role=role
+        )
+        await service.create_user(user_in)
     def override_get_db():
         yield async_db
     app.dependency_overrides[get_db] = override_get_db
