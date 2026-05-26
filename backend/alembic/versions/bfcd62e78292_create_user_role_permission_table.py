@@ -1,8 +1,8 @@
-"""create user role permisi tables
+"""create user role permission table
 
-Revision ID: de9e4a53a1f9
+Revision ID: bfcd62e78292
 Revises: 
-Create Date: 2026-05-27 02:15:32.584381
+Create Date: 2026-05-27 02:25:08.050507
 
 """
 from typing import Sequence, Union
@@ -14,7 +14,7 @@ from pgvector.sqlalchemy import Vector
 
 
 # revision identifiers, used by Alembic.
-revision: str = 'de9e4a53a1f9'
+revision: str = 'bfcd62e78292'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
