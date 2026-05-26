@@ -1,9 +1,9 @@
 import jwt
 
-from collections.abc import Generator
 from typing import Annotated, List
 from sqlalchemy.orm import sessionmaker
-from sqlmodel import Session
+
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from fastapi import Depends, HTTPException,status
 from fastapi.security import OAuth2PasswordBearer
@@ -15,10 +15,13 @@ from app.core.db import engine
 from app.core.config import settings
 from app.models.user import User
 from app.generic import TokenPayload, UserPermission
+
 from app.repositories.cruds.role_crud import RoleCrud
 from app.repositories.cruds.user_crud import UserCrud
+from app.repositories.cruds.permission_crud import PermissionCrud
+
 from app.services.user_service import UserService
-from sqlalchemy.ext.asyncio import AsyncSession
+from app.services.role_service import RoleService
 
 AsyncSessionLocal = sessionmaker(
     bind=engine,
@@ -44,6 +47,11 @@ def get_user_service(session: AsyncSession) -> UserService:
     user_repo = UserCrud(session)
     role_repo = RoleCrud(session)
     return UserService(user_repo, role_repo)
+
+def get_role_service(session: AsyncSession) -> RoleService:
+    role_repo = RoleCrud(session)
+    permission_repo = PermissionCrud(session)
+    return RoleService(role_repo, permission_repo)
 
 async def get_current_user(sess: SessionDep, token: TokenDep):
    

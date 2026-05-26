@@ -91,12 +91,6 @@ class UserService:
         
         return await self.user_crud.get_user_roles(user.id)
 
-    async def create_role(self, role_create: RoleCreate) -> Role:
-        role_create.name = role_create.name.lower()
-        role_model = Role.model_validate(role_create)
-        role = await self.role_crud.add(role_model)
-        return role
-
     async def authenticate(self, email:str, password:str) -> User | None:
         db_user = await self.user_crud.get_by_email(email)
         if not db_user:

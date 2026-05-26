@@ -7,7 +7,7 @@ from app.core.config import settings
 
 from app.models.role import RoleCreate
 from tests.helpers.util import random_email, random_lower_string
-from app.api.deps import get_user_service
+from app.api.deps import get_user_service, get_role_service
 
 @pytest.mark.asyncio
 async def test_create_user_service(async_db: AsyncSession, role:str) -> None:
@@ -41,6 +41,8 @@ async def test_update_user_service(async_db: AsyncSession, role:str) -> None:
     password = random_lower_string()
 
     service = get_user_service(async_db)
+    role_service = get_role_service(async_db)
+
 
     user_in = UserCreate(email=email, password=password, role=role)
     user = await service.create_user(user_in)
@@ -48,7 +50,7 @@ async def test_update_user_service(async_db: AsyncSession, role:str) -> None:
     role_dummy:str = "Burio"
 
     role_in = RoleCreate(name=role_dummy)
-    role_new = await service.create_role(role_in)
+    role_new = await role_service.create_role(role_in)
 
     user_in_update = UserUpdate(full_name='Kirun', role=role_new.name)
     if user.id is not None:
