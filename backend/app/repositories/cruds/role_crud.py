@@ -2,8 +2,7 @@
 from sqlmodel import func, select
 
 from app.models.role import Role
-from app.repositories.cruds.crud import Crud
-
+from .crud import Crud
 
 class RoleCrud(Crud[Role]):
     def __init__(self, session):
@@ -13,3 +12,6 @@ class RoleCrud(Crud[Role]):
         statement = select(Role).where(func.lower(Role.name) == name.lower())
         result = await self.session.execute(statement)
         return result.scalars().first()
+    
+    async def permissions(self):
+        pass
