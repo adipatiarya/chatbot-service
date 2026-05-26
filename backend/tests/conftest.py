@@ -15,7 +15,7 @@ from sqlalchemy.pool import NullPool
 from app.models.user import User, UserCreate
 from app.models.role import Role, RoleCreate
 from app.models.user_role import UserRole
-from app.api.deps import get_user_service
+from app.api.deps import get_user_service, get_db
 from app.main import app
 
 async_engine = create_async_engine(
@@ -64,12 +64,20 @@ async def role(async_db: AsyncSession)->str:
     role = await service.create_role(role_in)
     return role.name
 
+@pytest_asyncio.fixture(scope="function")
+async def role_user(async_db: AsyncSession)->str:
+    role_in = RoleCreate(name=settings.DEFAULT_ROLE_USER, description='Hello Role User')
+    service = get_user_service(async_db)
+    role = await service.create_role(role_in)
+    return role.name
 
-@pytest.fixture
-async def client():
-    transport = ASGITransport(app=app)
-    async with AsyncClient(transport=transport, base_url="http://test") as ac:
-        yield ac
+
+@pytest_asyncio.fixture(scope="function", autouse=True)
+async def client(async_db):
+    def override_get_db():
+        yield async_db
+    app.dependency_overrides[get_db] = override_get_db
+    return AsyncClient(transport=ASGITransport(app=app), base_url="http://localhost")
 
 @pytest.fixture
 async def superuser_token_headers(async_db: AsyncSession, client: AsyncClient, role:str) -> dict[str, str]:
@@ -91,6 +99,36 @@ async def superuser_token_headers(async_db: AsyncSession, client: AsyncClient, r
     }
     # user = await service.user_crud.get_by_email(settings.FIRST_SUPERUSER)
     # print(user)
+    r = await client.post(f"{settings.API_V1_STR}/auth/access-token", data=login_data)
+    tokens = r.json()
+    a_token = tokens["access_token"]
+    headers = {"Authorization":f"Bearer {a_token}"}
+    return headers
+
+
+@pytest.fixture
+async def normal_user_token_headers(async_db: AsyncSession, client: AsyncClient, role_user:str) -> dict[str, str]:
+    username = settings.EMAIL_TEST_USER
+    password = 'randompasswd'
+    
+    service = get_user_service(async_db)
+    user = await service.user_crud.get_by_email(username)
+    
+    role = role_user #cek in env default_role_user
+
+    if not user:
+        user_in = UserCreate(
+            email=username,
+            password=password,
+            role=role
+        )
+        await service.create_user(user_in)
+
+    login_data = {
+        "username": username,
+        "password": password
+    }
+   
     r = await client.post(f"{settings.API_V1_STR}/auth/access-token", data=login_data)
     tokens = r.json()
     a_token = tokens["access_token"]

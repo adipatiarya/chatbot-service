@@ -25,19 +25,23 @@ async def test_get_users_superuser_me(client: AsyncClient, superuser_token_heade
     assert current_user['is_superuser']
     assert current_user["email"]== settings.FIRST_SUPERUSER
     assert "role" in current_user
+    assert settings.DEFAULT_ROLE == current_user["role"] 
 
-#def test_get_users_normal_user_me(client: TestClient, normal_user_token_headers: dict[str, str]) -> None:
+@pytest.mark.asyncio
+async def test_get_users_normal_user_me(client: AsyncClient, normal_user_token_headers: dict[str, str]) -> None:
     
-#     r = client.get(f"{settings.API_V1_STR}/auth/me", headers=normal_user_token_headers)
+    r = await client.get(f"{settings.API_V1_STR}/auth/me", headers=normal_user_token_headers)
    
-#     assert r.status_code == 200
+    assert r.status_code == 200
 
-#     current_user = r.json()
+    current_user = r.json()
    
-#     assert current_user
-#     assert current_user["is_active"] is True
-#     assert current_user['is_superuser'] is False
-#     assert current_user["email"]== settings.EMAIL_TEST_USER
+    assert current_user
+    assert current_user["is_active"] is True
+    assert current_user['is_superuser'] is False
+    assert current_user["email"]== settings.EMAIL_TEST_USER
+    assert "role" in current_user
+    assert settings.DEFAULT_ROLE_USER == current_user["role"] 
 
 # def test_get_access_token(client: TestClient) -> None:
 #     login_data = {

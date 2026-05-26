@@ -50,6 +50,8 @@ class Settings(BaseSettings):
     EMAILS_FROM_NAME: str | None = None
     GENAI_API_KEY: str
 
+    DEFAULT_ROLE_USER: str
+
     #menghasilkan dot bukan ()
     @computed_field
     @property
