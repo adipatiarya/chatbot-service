@@ -35,12 +35,12 @@ class User(UserBase, table=True):
 # atribut untuk dikirim via api creation
 class UserCreate(UserBase):
     password: str = Field(min_length=8, max_length=128)
-    role: str
+    role: str = Field(min_length=2, max_length=128)
 
 class UserUpdate(UserBase):
     email: EmailStr | None = Field(default=None, max_length=255)
     password: str | None = Field(default=None, max_length=255)
-    role: str | None = None
+    role: Optional[str] = Field(default=None, min_length=2, max_length=128)
 
 class UserPublic(UserBase):
     id: uuid.UUID

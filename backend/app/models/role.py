@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Optional
 import uuid
 from datetime import datetime
 from sqlalchemy import DateTime
@@ -33,10 +33,11 @@ class Role(RoleBase, table=True):
     )
     
 class RoleCreate(RoleBase):
-   permission: list["str"] = Field(default_factory=list)
+    permission: list["str"] = Field(default_factory=list)
 
 class RoleUpdate(RoleBase):
-   pass
+    permission: Optional[list[str]] = Field(default_factory=list)
+    name: Optional[str] = Field(default=None, min_length=2, max_length=128)
     
 class RolePublic(RoleBase):
     id: uuid.UUID

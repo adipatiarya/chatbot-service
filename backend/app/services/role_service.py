@@ -2,7 +2,7 @@ import uuid
 
 from sqlmodel import delete
 
-from app.models.role import Role, RoleCreate,RolePermission
+from app.models.role import Role, RoleCreate,RolePermission, RoleUpdate
 from app.models.permission import Permission, PermissionCreate
 
 from app.repositories.cruds.role_crud import RoleCrud
@@ -23,20 +23,37 @@ class RoleService:
     async def create_role(self, role_in: RoleCreate) -> Role:
         role_in.name = role_in.name.lower()
         role_model = Role.model_validate(role_in)
-        user_data = role_in.model_dump(exclude_unset=True)
+        role_data = role_in.model_dump(exclude_unset=True)
         
         role = await self.role_crud.add(role_model)
-        if "permission" in user_data:
+        if "permission" in role_data:
 
             #kosongkan dulu
             await self.role_crud.session.execute(delete(RolePermission).where(RolePermission.role_id == role.id))
             await self.role_crud.session.commit()
 
-            for m in user_data["permission"]:
-                perm = await self.permission_crud.get_by_name(m)
+            for m in role_data["permission"]:
+                perm = await self.permission_crud.get_by_name_or_id(m)
                 if perm:
                    await self.assign_permission(role.id, perm.id)
-        return await self.role_crud.permissions(role.id)
+        return await self.role_crud.get_by_name_or_id(role.id)
+    
+    async def update_role(self, db_role:Role, role_in: RoleUpdate) -> Role:
+        role_data = role_in.model_dump(exclude_unset=True)
+        if "name" in role_data:
+            role_data["name"] = role_data["name"].lower()
+
+        if "permission" in role_data:
+            #kosongkan dulu
+            await self.role_crud.session.execute(delete(RolePermission).where(RolePermission.role_id == db_role.id))
+            await self.role_crud.session.commit()
+            for m in role_data["permission"]:
+                perm = await self.permission_crud.get_by_name_or_id(m)
+                if perm:
+                   await self.assign_permission(db_role.id, perm.id)
+        db_role.sqlmodel_update(role_data)
+        await self.role_crud.add(db_role)
+        return await self.role_crud.get_by_name_or_id(db_role.id)
     
     async def create_permissions(self, permissions: list[str]) -> list[Permission]:
         model_perms = []

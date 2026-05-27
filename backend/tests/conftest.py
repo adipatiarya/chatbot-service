@@ -66,6 +66,8 @@ async def role(async_db: AsyncSession)->str:
     role = await service.create_role(role_in)
     return role.name
 
+
+
 @pytest_asyncio.fixture(scope="function")
 async def role_user(async_db: AsyncSession)->str:
     

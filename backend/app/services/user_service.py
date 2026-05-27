@@ -44,7 +44,7 @@ class UserService:
     async def assign_role(self, user_id: uuid.UUID, role_name: str) -> UserRole:
 
         user = await self.user_crud.get_by_id(user_id)
-        role = await self.role_crud.get_by_name(role_name)
+        role = await self.role_crud.get_by_name_or_id(role_name)
         if not user or not role:
             raise ValueError("User atau Role tidak ditemukan")
         
