@@ -5,6 +5,21 @@ from app.core.exception import DuplicateEntryError
 from app.models.role import RoleCreate
 
 @pytest.mark.asyncio
+async def test_create_permissions(async_db: AsyncSession) -> None:
+    service = get_role_service(async_db)
+    permission=['can_create_user','can_update_user','can_add_role'] #permission ini harus sudah ada
+    await service.create_permissions(permission)
+
+
+async def test_create_permissions_with_duplicate(async_db: AsyncSession) -> None:
+    service = get_role_service(async_db)
+    permission=['dup','dup', 'nodup']
+    with pytest.raises(DuplicateEntryError):
+        await service.create_permissions(permission)
+
+@pytest.mark.asyncio
+
+@pytest.mark.asyncio
 async def test_create_role_permission_with_exist_permissions(async_db: AsyncSession) -> None:
     service = get_role_service(async_db)
 
