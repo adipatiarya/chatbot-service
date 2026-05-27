@@ -34,8 +34,16 @@ async def test_create_role_permission_with_exist_permissions(async_db: AsyncSess
         permission=permission
     )
     role = await service.create_or_update_role(data)
+
+    #harus punya atribut permission
     assert hasattr(role, "permissions")
-    assert len(role.permissions) == 3
+
+    #jumlah len harus sama  
+    assert len(role.permissions) == len(permission)
+
+    #value permission sesuai input
+    role_perm_names = [perm.name for perm in role.permissions]
+    assert set(role_perm_names) == set(permission)
 
 @pytest.mark.asyncio
 async def test_create_role_permission_with_not_exist_permissions(async_db: AsyncSession) -> None:
