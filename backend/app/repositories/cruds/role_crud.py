@@ -1,4 +1,5 @@
 
+from sqlalchemy.orm import selectinload
 from sqlmodel import func, select
 
 from app.models.role import Role
@@ -13,5 +14,7 @@ class RoleCrud(Crud[Role]):
         result = await self.session.execute(statement)
         return result.scalars().first()
     
-    async def permissions(self):
-        pass
+    async def permissions(self, role_id)->Role:
+        result = await self.session.execute(select(Role).options(selectinload(Role.permissions)).where(Role.id == role_id))
+        role = result.scalars().first()
+        return role

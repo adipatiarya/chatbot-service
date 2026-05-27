@@ -73,7 +73,7 @@ class UserService:
         user = await self.user_crud.add(user_model)
 
         await self.assign_role(user.id, user_create.role)
-        return await self.user_crud.get_user_roles(user.id)
+        return await self.user_crud.roles(user.id)
     
     async def update_user(self, db_user: User, user_in: UserUpdate) -> User:
         user_data = user_in.model_dump(exclude_unset=True)
@@ -89,7 +89,7 @@ class UserService:
 
         user = await self.user_crud.add(db_user)
         
-        return await self.user_crud.get_user_roles(user.id)
+        return await self.user_crud.roles(user.id)
 
     async def authenticate(self, email:str, password:str) -> User | None:
         db_user = await self.user_crud.get_by_email(email)

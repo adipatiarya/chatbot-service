@@ -17,16 +17,8 @@
             "args": ["-s", "-v", "tests/api/"],
             "cwd": "${workspaceFolder}/backend"
         },
-         {
-            "name": "Test Crud",
-            "type": "debugpy",
-            "request": "launch",
-            "module": "pytest",
-            "args": ["-s", "-v", "tests/crud/"],
-            "cwd": "${workspaceFolder}/backend"
-        },
         {
-            "name": "Test Users",
+            "name": "Test Api Users",
             "type": "debugpy",
             "request": "launch",
             "module": "pytest",
@@ -34,12 +26,21 @@
             "cwd": "${workspaceFolder}/backend"
         },
 
-           {
-            "name": "Test Services",
+        {
+            "name": "Test Service Roles",
             "type": "debugpy",
             "request": "launch",
             "module": "pytest",
-            "args": ["-s", "-v", "tests/services/"],
+            "args": ["-s", "-v", "tests/services/test_role_service.py"],
+            "cwd": "${workspaceFolder}/backend"
+        },
+
+         {
+            "name": "Test Service All",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "pytest",
+            "args": ["-s", "-v", "tests/services"],
             "cwd": "${workspaceFolder}/backend"
         },
 

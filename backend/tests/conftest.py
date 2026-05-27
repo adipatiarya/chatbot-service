@@ -63,7 +63,7 @@ async def async_db(async_db_engine):
 async def role(async_db: AsyncSession)->str:
     role_in = RoleCreate(name=settings.DEFAULT_ROLE, description='Hello Role')
     service = get_role_service(async_db)
-    role = await service.create_role(role_in)
+    role = await service.create_or_update_role(role_in)
     return role.name
 
 @pytest_asyncio.fixture(scope="function")
@@ -71,7 +71,7 @@ async def role_user(async_db: AsyncSession)->str:
     
     role_in = RoleCreate(name=settings.DEFAULT_ROLE_USER, description='Hello Role User')
     service = get_role_service(async_db)
-    role = await service.create_role(role_in)
+    role = await service.create_or_update_role(role_in)
     return role.name
 
 

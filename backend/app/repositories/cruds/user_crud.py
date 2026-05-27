@@ -16,7 +16,7 @@ class UserCrud(Crud[User]):
         )
         return result.scalars().first()
     
-    async def get_user_roles(self, user_id: uuid.UUID) -> User | None:
+    async def roles(self, user_id: uuid.UUID) -> User | None:
         result = await self.session.execute(select(User).options(selectinload(User.roles)).where(User.id == user_id))
         user = result.scalars().first()
         return user

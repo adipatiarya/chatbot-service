@@ -66,7 +66,7 @@ async def get_current_user(sess: SessionDep, token: TokenDep):
         )
     service = get_user_service(sess)
 
-    user = await service.user_crud.get_user_roles(token_data.sub)
+    user = await service.user_crud.roles(token_data.sub)
     if not user:
         raise HTTPException(status_code=404, detail='User not eksis')
     if not user.is_active:
