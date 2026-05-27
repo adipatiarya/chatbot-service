@@ -160,3 +160,35 @@ async def test_update_role_permission_only(async_db: AsyncSession, role_id) -> N
         assert set(role_perm_names) == set(['bbb'])
         assert data_ret.name == role.name
 
+
+@pytest.mark.asyncio
+async def test_update_role_name_only(async_db: AsyncSession, role_id) -> None:
+    service = get_role_service(async_db)
+
+    role = await service.role_crud.get_by_name_or_id(role_id)
+    role_perm_names = [perm.name for perm in role.permissions]
+    assert set(role_perm_names) == set(['aaa','bbb','ccc'])  #target permisi
+
+    role_in = RoleUpdate(name='jenggot')
+
+    if role:
+        logger.info("BLOK INI DI EKSEKUSI")
+        data_ret = await service.update_role(role, role_in)
+        assert data_ret
+
+        assert hasattr(data_ret, "permissions")
+        assert len(data_ret.permissions) == 3
+        role_perm_names = [perm.name for perm in data_ret.permissions]
+        assert set(role_perm_names) == set(['aaa','bbb','ccc'])
+        assert data_ret.name == 'jenggot'
+
+@pytest.mark.asyncio
+async def test_delete_role(async_db: AsyncSession, role_id) -> None:
+   service = get_role_service(async_db)
+   role = await service.role_crud.get_by_name_or_id(role_id)
+   assert role #cek ini idnya masih ada
+   if role:
+       await service.role_crud.delete(role)
+   
+   role = await service.role_crud.get_by_name_or_id(role_id)
+   assert role is None #seharusnya kosong karena sudah di hapus
