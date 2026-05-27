@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 import uuid
 from datetime import datetime
 from sqlalchemy import DateTime
@@ -33,7 +33,7 @@ class Role(RoleBase, table=True):
     )
     
 class RoleCreate(RoleBase):
-   pass
+   permission: list["str"] = Field(default_factory=list)
 
 class RoleUpdate(RoleBase):
    pass

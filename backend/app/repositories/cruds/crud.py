@@ -3,6 +3,8 @@ from typing import TypeVar, Generic, Type
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
+from app.core.exception import commit_with_integrity
+
 T = TypeVar("T")  # tipe model (User, Role, dll)
 
 class Crud(Generic[T]):
@@ -20,9 +22,25 @@ class Crud(Generic[T]):
     async def add(self, obj: T) -> T:
         try:
             self.session.add(obj)
+            await commit_with_integrity(self.session)
             await self.session.commit()
             await self.session.refresh(obj)
             return obj
+        except Exception:
+            await self.session.rollback()
+            raise
+    async def add_many(self, objs: list[T]) -> list[T]:
+        try:
+            self.session.add_all(objs)
+            
+            await commit_with_integrity(self.session)
+            
+            await self.session.commit()
+
+            for obj in objs:
+                await self.session.refresh(obj)
+
+            return objs
         except Exception:
             await self.session.rollback()
             raise

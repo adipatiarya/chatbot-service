@@ -49,6 +49,7 @@ class Settings(BaseSettings):
     EMAILS_FROM_EMAIL: EmailStr | None = None
     EMAILS_FROM_NAME: str | None = None
     GENAI_API_KEY: str
+    ENV: str = 'prod'
 
     DEFAULT_ROLE_USER: str
 

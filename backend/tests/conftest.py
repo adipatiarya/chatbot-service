@@ -16,6 +16,8 @@ from sqlalchemy.pool import NullPool
 from app.models.user import User, UserCreate
 from app.models.role import Role, RoleCreate
 from app.models.user_role import UserRole
+from app.models.permission import Permission, RolePermission
+
 from app.api.deps import get_user_service, get_db, get_role_service
 from app.main import app
 
@@ -53,9 +55,8 @@ async def async_db(async_db_engine):
     async with async_session() as session:
         await session.commit()
         yield session
-        await session.execute(delete(UserRole))
-        await session.execute(delete(User))
-        await session.execute(delete(Role))
+        for model in [UserRole, User, Role, Permission, RolePermission]:
+            await session.execute(delete(model))
         await session.commit()
 
 @pytest_asyncio.fixture(scope="function")
