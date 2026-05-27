@@ -20,7 +20,7 @@ class RoleService:
         await self.role_crud.session.commit()
         await self.role_crud.session.refresh(link)
 
-    async def create_or_update_role(self, role_in: RoleCreate) -> Role:
+    async def create_role(self, role_in: RoleCreate) -> Role:
         role_in.name = role_in.name.lower()
         role_model = Role.model_validate(role_in)
         user_data = role_in.model_dump(exclude_unset=True)

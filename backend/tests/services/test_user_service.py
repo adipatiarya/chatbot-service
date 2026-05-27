@@ -50,7 +50,7 @@ async def test_update_user_service(async_db: AsyncSession, role:str) -> None:
     role_dummy:str = "Burio"
 
     role_in = RoleCreate(name=role_dummy)
-    role_new = await role_service.create_or_update_role(role_in)
+    role_new = await role_service.create_role(role_in)
 
     user_in_update = UserUpdate(full_name='Kirun', role=role_new.name)
     if user.id is not None:
