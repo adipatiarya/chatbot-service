@@ -53,6 +53,7 @@ class Settings(BaseSettings):
 
     DEFAULT_ROLE_USER: str
 
+
     #menghasilkan dot bukan ()
     @computed_field
     @property

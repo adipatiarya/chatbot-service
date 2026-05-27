@@ -21,6 +21,6 @@ async def commit_with_integrity(session: AsyncSession):
         await session.rollback()
         if not 'prod' in settings.ENV:
             raise DuplicateEntryError(e) from e
-        raise DuplicateEntryError("Terjadi Duplicate Data") from e
+        raise DuplicateEntryError("Data Duplikat Data") from e
 
 

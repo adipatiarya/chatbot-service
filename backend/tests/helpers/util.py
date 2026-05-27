@@ -9,3 +9,5 @@ def random_lower_string() -> str:
 
 def random_email() -> str:
     return f"{random_lower_string()}@{random_lower_string()}.com" 
+
+permissions_test: list[str] = ['can_create_user','can_update_user','can_create_role', 'can_view_user'] 
