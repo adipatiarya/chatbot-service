@@ -13,9 +13,6 @@ class RolePermissionDto(BaseModel):
     description: Any | None = None
     permission: Dict[str, Dict[str, bool]] = all_perms()
 
-class RolePermissionDetail(BaseModel):
+class RolePermissionDetail(RolePermissionDto):
     id: uuid.UUID
     created_at: datetime
-    name: str
-    description: Any | None = None
-    permission: Dict[str, Dict[str, bool]] = all_perms()
