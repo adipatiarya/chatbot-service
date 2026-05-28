@@ -7,9 +7,13 @@ from app.models.role import RoleCreate
 from app.api.dtos.role_dto import RolePermissionDto, RolePermissionDetail
 from app.utils import all_perms, apply_permissions, extract_true_permissions
 
-router = APIRouter(tags=["Authentication"], prefix="/roles")
+router = APIRouter(tags=["Role Permissions"], prefix="/roles")
 
-@router.post("", response_model=RolePermissionDetail, status_code=201)
+@router.post("", 
+    response_model=RolePermissionDetail,
+    status_code=201,
+    description="Membuat role baru dengan daftar permission yang diberikan."
+)
 async def create_role(sess: SessionDep, currentUser: CurrentUser, data: RolePermissionDto):
 
     service = get_role_service(sess)
@@ -30,7 +34,7 @@ async def create_role(sess: SessionDep, currentUser: CurrentUser, data: RolePerm
     )
     return role 
 
-@router.get("/{role_id}", response_model=RolePermissionDetail)
+@router.get("/{role_id}", response_model=RolePermissionDetail,  description="Informasi detail tentang role dan permissionnya")
 async def  get_role(sess: SessionDep, role_id: uuid.UUID):
     # Simulasi update ke DB
     service = get_role_service(sess)

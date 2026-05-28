@@ -81,7 +81,3 @@ async def test_role_by_id(client: AsyncClient, superuser_token_headers: dict[str
     assert "permission" in resp
     assert json.dumps(resp["permission"], sort_keys=True) == json.dumps(payload["permission"], sort_keys=True)
 
-
-
-
-
