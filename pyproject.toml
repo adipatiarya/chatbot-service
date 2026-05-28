@@ -10,6 +10,7 @@ dependencies = [
     "colorlog>=6.10.1",
     "email-validator>=2.3.0",
     "emails>=1.1.2",
+    "faker>=40.19.1",
     "fastapi>=0.136.1",
     "google-genai>=2.6.0",
     "httpx>=0.28.1",
