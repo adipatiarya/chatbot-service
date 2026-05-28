@@ -17,7 +17,7 @@ async def create_role(sess: SessionDep, currentUser: CurrentUser, data: RolePerm
 
     role_in = RoleCreate(
         name=data.name,
-        permission=extract_true_permissions(data.permission)
+        permission_strs=extract_true_permissions(data.permission)
     )
 
     resp = await service.create_role(role_in)
