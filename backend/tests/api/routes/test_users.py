@@ -21,7 +21,7 @@ async def test_create_user(client: AsyncClient , superuser_token_headers: dict[s
             "role": {
                 "can_create_role": False,
                 "can_delete_role": False,
-                "can_update_role": False,
+                "can_update_role": True,
                 "can_view_role": False
             }
         }
@@ -39,11 +39,13 @@ async def test_create_user(client: AsyncClient , superuser_token_headers: dict[s
         'role': role_name
     }
     r = await client.post(f"{settings.API_V1_STR}/users", headers=superuser_token_headers, json=payload)
-    
     assert 201 == r.status_code
-
     resp = r.json()
-
     assert resp
 
     print(resp)
+    
+
+    # #cek dooble
+    # r = await client.post(f"{settings.API_V1_STR}/users", headers=superuser_token_headers, json=payload)
+    # assert 400 == r.status_code #pastikan error

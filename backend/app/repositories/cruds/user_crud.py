@@ -4,6 +4,7 @@ from sqlalchemy.orm import selectinload
 from sqlmodel import select
 
 from app.models.user import User
+from app.models.role import Role
 from .crud import Crud
 
 class UserCrud(Crud[User]):
@@ -17,6 +18,7 @@ class UserCrud(Crud[User]):
         return result.scalars().first()
     
     async def roles(self, user_id: uuid.UUID) -> User | None:
-        result = await self.session.execute(select(User).options(selectinload(User.roles)).where(User.id == user_id))
-        user = result.scalars().first()
+        result = await self.session.execute(select(User).options(selectinload(User.roles).selectinload(Role.permissions)).where(User.id == user_id))
+        user = result.scalar_one()
         return user
+    

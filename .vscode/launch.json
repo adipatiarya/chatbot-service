@@ -18,11 +18,11 @@
             "cwd": "${workspaceFolder}/backend"
         },
         {
-            "name": "Test Api Roles",
+            "name": "Test Api User",
             "type": "debugpy",
             "request": "launch",
             "module": "pytest",
-            "args": ["-s", "-v", "tests/api/routes/test_roles.py"],
+            "args": ["-s", "-v", "tests/api/routes/test_users.py"],
             "cwd": "${workspaceFolder}/backend"
         },
 
@@ -32,6 +32,14 @@
             "request": "launch",
             "module": "pytest",
             "args": ["-s", "-v", "tests/services/test_role_service.py"],
+            "cwd": "${workspaceFolder}/backend"
+        },
+         {
+            "name": "Test Service User",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "pytest",
+            "args": ["-s", "-v", "tests/services/test_user_service.py"],
             "cwd": "${workspaceFolder}/backend"
         },
 

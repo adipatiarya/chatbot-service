@@ -13,10 +13,8 @@ from app.repositories.cruds.user_crud import UserCrud
 from app.repositories.cruds.role_crud import RoleCrud
 
 
-from app.models.user import User, UserCreate, UserUpdate
+from app.models.user import User, UserCreate, UserPublic, UserUpdate
 from app.models.user_role import UserRole
-from app.models.role import RoleCreate, Role
-
 
 class UserService:
     def __init__(self, user_crud: UserCrud, role_crud: RoleCrud):
@@ -102,3 +100,23 @@ class UserService:
             db_user.hashed_password = update_password_hash
             await self.user_crud.add(db_user)
         return db_user
+    
+    def populate_user(self, user: User) -> UserPublic:
+        extra_data = {
+            "role": None,
+            "permissions": []
+        }
+
+        if user.roles:
+            role = user.roles[0]  # ambil role pertama
+            extra_data["role"] = role.name
+            perms = {p.name for r in user.roles for p in r.permissions}
+            extra_data["permissions"] = list(perms)
+        
+        return UserPublic(
+            id=user.id,
+            email=user.email,
+            full_name=user.full_name,
+            is_superuser=user.is_superuser,
+            **extra_data
+        )

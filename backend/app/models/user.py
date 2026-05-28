@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING, List, Any, Optional
 import uuid
 from datetime import datetime
 from sqlalchemy import DateTime
-from pydantic import EmailStr, computed_field
+from pydantic import BaseModel, EmailStr, computed_field
 from sqlmodel import  Field, Relationship
 
 from sqlmodel import  Field, Relationship, SQLModel as Base
@@ -42,23 +42,10 @@ class UserUpdate(UserBase):
     password: str | None = Field(default=None, max_length=255)
     role: Optional[str] = Field(default=None, min_length=2, max_length=128)
 
-class UserPublic(UserBase):
+class  UserPublic(BaseModel):
     id: uuid.UUID
-    created_at: datetime | None = None
-    #roles:List["Any"] = []
-
-    # @computed_field
-    # @property
-    # def role(self) -> Optional[str]:
-    #     return self.roles[0].name if self.roles else None,
-    
-    # @computed_field
-    # @property
-    # def permissions(self) -> Optional[List[str]]:
-    #     if not self.roles:
-    #         return None
-    #     # ambil semua permission.name dari setiap role
-    #     perms = []
-    #     for r in self.roles:
-    #         perms.extend([p.name for p in r.permissions])
-    #     return list(set(perms))  # hilangkan duplikat
+    email: EmailStr
+    is_superuser: bool = False 
+    full_name: str | None = None
+    role: str | None = None
+    permissions: list[str] = []
