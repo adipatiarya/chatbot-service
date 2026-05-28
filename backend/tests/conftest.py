@@ -68,11 +68,13 @@ async def role(async_db: AsyncSession)->str:
     return role.name
 
 
+from app.utils import extract_all_permissions
 
 @pytest_asyncio.fixture(scope="function")
 async def role_user(async_db: AsyncSession)->str:
+    permission = extract_all_permissions()
     
-    role_in = RoleCreate(name=settings.DEFAULT_ROLE_USER, description='Hello Role User')
+    role_in = RoleCreate(name=settings.DEFAULT_ROLE_USER, description='Hello Role User', permission_strs=permission)
     service = get_role_service(async_db)
     role = await service.create_role(role_in)
     return role.name

@@ -46,6 +46,7 @@ class  UserPublic(BaseModel):
     id: uuid.UUID
     email: EmailStr
     is_superuser: bool = False 
+    is_active: bool = False
     full_name: str | None = None
     role: str | None = None
     permissions: list[str] = []

@@ -20,7 +20,7 @@ from app.services.email_service import EmailService
 router = APIRouter(tags=["Authentication"], prefix="/auth")
 
 
-@router.get("/me", response_model=UserPublic, response_model_exclude={"roles"})
+@router.get("/me", response_model=UserPublic)
 async def users_me(current_user: CurrentUser) -> None:
     return current_user
 

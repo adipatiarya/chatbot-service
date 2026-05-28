@@ -43,6 +43,7 @@ class UserService:
 
         user = await self.user_crud.get_by_id(user_id)
         role = await self.role_crud.get_by_name_or_id(role_name)
+      
         if not user or not role:
             raise ValueError("User atau Role tidak ditemukan")
         
@@ -118,5 +119,6 @@ class UserService:
             email=user.email,
             full_name=user.full_name,
             is_superuser=user.is_superuser,
+            is_active=user.is_active,
             **extra_data
         )

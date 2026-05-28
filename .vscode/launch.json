@@ -10,11 +10,19 @@
             "cwd": "${workspaceFolder}/backend"
         },
         {
-            "name": "Test Api All",
+            "name": "Test All",
             "type": "debugpy",
             "request": "launch",
             "module": "pytest",
-            "args": ["-s", "-v", "tests/api/"],
+            "args": ["-s", "-v"],
+            "cwd": "${workspaceFolder}/backend"
+        },
+        {
+            "name": "Test Api Auth",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "pytest",
+            "args": ["-s", "-v", "tests/api/routes/test_auth.py"],
             "cwd": "${workspaceFolder}/backend"
         },
         {

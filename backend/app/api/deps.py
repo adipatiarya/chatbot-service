@@ -71,8 +71,7 @@ async def get_current_user(sess: SessionDep, token: TokenDep):
         raise HTTPException(status_code=404, detail='User not eksis')
     if not user.is_active:
         raise HTTPException(status_code=400, detail='Inactive user')
-    
-    return user
+    return service.populate_user(user)
    
 
 

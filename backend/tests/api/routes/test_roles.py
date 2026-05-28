@@ -13,9 +13,6 @@ from app.utils import logger
 async def test_get_all_role(client: AsyncClient, normal_user_token_headers: dict[str, str]) -> None:
     r = await client.get(f"{settings.API_V1_STR}/roles", headers=normal_user_token_headers)
     assert 200 == r.status_code
-    render = r.json()
-    logger.info(render)
-
 
 @pytest.mark.asyncio
 async def test_create_roles(client: AsyncClient, normal_user_token_headers: dict[str, str]) -> None:
@@ -234,7 +231,7 @@ async def test_update_role(client: AsyncClient, normal_user_token_headers: dict[
     resp = await client.put(f"{settings.API_V1_STR}/roles/{id}", headers=normal_user_token_headers, json=payload)
     assert resp
     json_data = resp.json()
-    print(json_data)
+
     assert resp.status_code == 200
     assert json.dumps(json_data["permission"], sort_keys=True) == json.dumps(payload["permission"], sort_keys=True)
 

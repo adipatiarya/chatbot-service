@@ -110,6 +110,12 @@ def extract_true_permissions(permission_dict: dict[str, dict[str, bool]]) -> lis
                 result.append(perm_name)
     return result
 
+def extract_all_permissions() -> list[str]:
+    result = []
+    for _, perms in all_perms().items():
+        for perm_name, _ in perms.items():
+            result.append(perm_name)
+    return result
 
 #untuk mengatasi circullar import
 if TYPE_CHECKING:
