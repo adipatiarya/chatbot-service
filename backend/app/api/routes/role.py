@@ -1,7 +1,7 @@
 from datetime import datetime
 import uuid
 
-from fastapi import APIRouter, Path, Query, status
+from fastapi import APIRouter, HTTPException, Path, Query, status
 from app.api.deps import CurrentUser, SessionDep, get_role_service
 
 from app.models.role import RoleCreate, RolePublic, RoleUpdate
@@ -104,10 +104,18 @@ async def  get_role(sess: SessionDep, role_id: uuid.UUID = Path(..., description
 @router.put("/{role_id}",summary="Update role",description="Update data role berdasarkan ID")
 async def update_role(sess: SessionDep,  role_id: uuid.UUID = Path(..., description="UUID role")):
     service = get_role_service(sess)
-    pass
-
+    role = await service.role_crud.get_by_name_or_id(role_id)
+    if not role:
+         raise HTTPException(status_code=404, detail="Role not found")
+    return {
+        'ok':'ok'
+    }
+        
 
 @router.delete("/{role_id}",summary="Delete role",description="Delete data role berdasarkan ID", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_role(sess: SessionDep,  role_id: uuid.UUID = Path(..., description="UUID role")):
     service = get_role_service(sess)
-    pass
+    role = await service.role_crud.get_by_name_or_id(role_id)
+    if not role:
+         raise HTTPException(status_code=404, detail="Role not found")
+    await service.role_crud.delete(role)

@@ -162,3 +162,30 @@ async def test_filter_with_faker(client: AsyncClient, superuser_token_headers: d
     assert resp.status_code == 200
     data = resp.json()
     assert any(keyword in r["name"].lower() or keyword in (r["description"] or "").lower() for r in data["data"])
+
+@pytest.mark.asyncio
+async def test_delete_role(client: AsyncClient, superuser_token_headers: dict[str, str]):
+    # generate satu role dengan keyword unik
+    unique_name = "superadmin_" + faker.word()
+    role_data = {
+        "name": unique_name,
+        "description": faker.sentence(),
+    }
+
+    resp = await client.post(f"{settings.API_V1_STR}/roles", json=role_data, headers=superuser_token_headers)
+    assert resp.status_code == 201
+
+    json_data = resp.json()
+
+    id = json_data["id"]
+
+    resp = await client.delete(f"{settings.API_V1_STR}/roles/{id}", headers=superuser_token_headers)
+    assert resp.status_code == 204
+
+    #404
+    resp = await client.delete(f"{settings.API_V1_STR}/roles/abc", headers=superuser_token_headers)
+    assert resp.status_code == 422
+    data = resp.json()
+   
+
+
