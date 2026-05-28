@@ -45,9 +45,20 @@ class UserUpdate(UserBase):
 class UserPublic(UserBase):
     id: uuid.UUID
     created_at: datetime | None = None
-    roles:List["Any"] = []
+    #roles:List["Any"] = []
 
-    @computed_field
-    @property
-    def role(self) -> Optional[str]:
-        return self.roles[0].name if self.roles else None
+    # @computed_field
+    # @property
+    # def role(self) -> Optional[str]:
+    #     return self.roles[0].name if self.roles else None,
+    
+    # @computed_field
+    # @property
+    # def permissions(self) -> Optional[List[str]]:
+    #     if not self.roles:
+    #         return None
+    #     # ambil semua permission.name dari setiap role
+    #     perms = []
+    #     for r in self.roles:
+    #         perms.extend([p.name for p in r.permissions])
+    #     return list(set(perms))  # hilangkan duplikat
