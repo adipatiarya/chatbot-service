@@ -87,11 +87,14 @@ async def list_roles(
 
 
 @router.get("/{role_id}", response_model=RolePermissionDetail,  description="Informasi detail tentang role dan permissionnya")
-async def  get_role(sess: SessionDep, role_id: uuid.UUID = Path(..., description="UUID role")):
+async def  get_role(sess: SessionDep, role_id: uuid.UUID  = Path(..., description="UUID role")):
+
     service = get_role_service(sess)
 
     resp = await service.role_crud.get_by_name_or_id(role_id)
- 
+    if not resp:
+         raise HTTPException(status_code=404, detail="Role not found")
+    
     role = RolePermissionDetail(
         id=resp.id,                  # server generate
         created_at=resp.created_at,     # server generate
@@ -101,15 +104,28 @@ async def  get_role(sess: SessionDep, role_id: uuid.UUID = Path(..., description
     )
     return role 
 
-@router.put("/{role_id}",summary="Update role",description="Update data role berdasarkan ID")
-async def update_role(sess: SessionDep,  role_id: uuid.UUID = Path(..., description="UUID role")):
+@router.put("/{role_id}",summary="Update role",description="Update data role berdasarkan ID", response_model=RolePermissionDetail)
+async def update_role(sess: SessionDep, data: RolePermissionDto,  role_id: uuid.UUID = Path(..., description="UUID role")):
     service = get_role_service(sess)
     role = await service.role_crud.get_by_name_or_id(role_id)
     if not role:
          raise HTTPException(status_code=404, detail="Role not found")
-    return {
-        'ok':'ok'
-    }
+    
+    role_in = RoleUpdate(
+        name=data.name,
+        permission_strs=extract_true_permissions(data.permission)
+    )
+
+    resp = await service.update_role(role, role_in)
+
+    role = RolePermissionDetail(
+        id=resp.id,                  # server generate
+        created_at=resp.created_at,     # server generate
+        name=resp.name,
+        description=resp.description,
+        permission= apply_permissions(all_perms(), [perm.name for perm in resp.permissions] )
+    )
+    return role 
         
 
 @router.delete("/{role_id}",summary="Delete role",description="Delete data role berdasarkan ID", status_code=status.HTTP_204_NO_CONTENT)

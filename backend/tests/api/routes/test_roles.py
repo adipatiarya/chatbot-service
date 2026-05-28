@@ -166,7 +166,7 @@ async def test_filter_with_faker(client: AsyncClient, superuser_token_headers: d
 @pytest.mark.asyncio
 async def test_delete_role(client: AsyncClient, superuser_token_headers: dict[str, str]):
     # generate satu role dengan keyword unik
-    unique_name = "superadmin_" + faker.word()
+    unique_name = random_lower_string()
     role_data = {
         "name": unique_name,
         "description": faker.sentence(),
@@ -179,13 +179,63 @@ async def test_delete_role(client: AsyncClient, superuser_token_headers: dict[st
 
     id = json_data["id"]
 
+    
     resp = await client.delete(f"{settings.API_V1_STR}/roles/{id}", headers=superuser_token_headers)
     assert resp.status_code == 204
 
-    #404
+    #422
     resp = await client.delete(f"{settings.API_V1_STR}/roles/abc", headers=superuser_token_headers)
     assert resp.status_code == 422
-    data = resp.json()
+
+    print(id)
+
+
+    resp = await client.get(f"{settings.API_V1_STR}/roles/{id}", headers=superuser_token_headers)
+    assert resp.status_code == 404
    
+@pytest.mark.asyncio
+async def test_update_role(client: AsyncClient, superuser_token_headers: dict[str, str]):
+    # generate satu role dengan keyword unik
+    unique_name = random_lower_string()
+    role_data = {
+        "name": unique_name,
+        "description": faker.sentence(),
+    }
+
+    resp= await client.post(f"{settings.API_V1_STR}/roles", json=role_data, headers=superuser_token_headers)
+    json_data = resp.json()
+
+    resp = await client.get(f"{settings.API_V1_STR}/roles/{json_data['id']}", headers=superuser_token_headers)
+    assert 200 == resp.status_code
+    
+    json_data = resp.json()
+    id = json_data["id"]
+
+    name = faker.word()
+    payload = {
+            "name": name,
+            "description": faker.sentence(),
+            "permission": {
+                "user": {
+                    "can_create_user": False,
+                    "can_delete_user": True,
+                    "can_update_user": False,
+                    "can_view_user": False
+                },
+                "role": {
+                    "can_create_role": False,
+                    "can_delete_role": True,
+                    "can_update_role": True,
+                    "can_view_role": False
+                }
+            }
+        }
+
+    resp = await client.put(f"{settings.API_V1_STR}/roles/{id}", headers=superuser_token_headers, json=payload)
+    assert resp
+    json_data = resp.json()
+    print(json_data)
+    assert resp.status_code == 200
+    assert json.dumps(json_data["permission"], sort_keys=True) == json.dumps(payload["permission"], sort_keys=True)
 
 
