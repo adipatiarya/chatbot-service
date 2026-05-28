@@ -26,13 +26,13 @@ class RoleService:
         role_data = role_in.model_dump(exclude_unset=True)
         
         role = await self.role_crud.add(role_model)
-        if "permission" in role_data:
+        if "permission_strs" in role_data:
 
             #kosongkan dulu
             await self.role_crud.session.execute(delete(RolePermission).where(RolePermission.role_id == role.id))
             await self.role_crud.session.commit()
 
-            for m in role_data["permission"]:
+            for m in role_data["permission_strs"]:
                 perm = await self.permission_crud.get_by_name_or_id(m)
                 if perm:
                    await self.assign_permission(role.id, perm.id)
@@ -43,11 +43,11 @@ class RoleService:
         if "name" in role_data:
             role_data["name"] = role_data["name"].lower()
 
-        if "permission" in role_data:
+        if "permission_strs" in role_data:
             #kosongkan dulu
             await self.role_crud.session.execute(delete(RolePermission).where(RolePermission.role_id == db_role.id))
             await self.role_crud.session.commit()
-            for m in role_data["permission"]:
+            for m in role_data["permission_strs"]:
                 perm = await self.permission_crud.get_by_name_or_id(m)
                 if perm:
                    await self.assign_permission(db_role.id, perm.id)

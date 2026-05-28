@@ -33,10 +33,10 @@ class Role(RoleBase, table=True):
     )
     
 class RoleCreate(RoleBase):
-    permission: list["str"] = Field(default_factory=list)
+    permission_strs: list["str"] = Field(default_factory=list)
 
 class RoleUpdate(RoleBase):
-    permission: Optional[list[str]] = Field(default_factory=list)
+    permission_strs: Optional[list[str]] = Field(default_factory=list)
     name: Optional[str] = Field(default=None, min_length=2, max_length=128)
     
 class RolePublic(RoleBase):

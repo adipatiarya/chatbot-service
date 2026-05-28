@@ -7,19 +7,22 @@ from app.api.deps import get_role_service
 from app.core.exception import DuplicateEntryError
 from app.models.role import RoleCreate, RoleUpdate
 
+from tests.helpers.util import random_lower_string
+
 @pytest.mark.asyncio
 async def test_create_permissions(async_db: AsyncSession) -> None:
     service = get_role_service(async_db)
-    permission=['can_create_user','can_update_user','can_add_role'] #permission ini harus sudah ada
+    permission = [random_lower_string() for _ in range(3)]
+
     await service.create_permissions(permission)
 
 
 @pytest.mark.asyncio
 async def test_create_permissions_with_duplicate(async_db: AsyncSession) -> None:
     service = get_role_service(async_db)
-    permission=['dup','dup', 'nodup']
+    permission_strs=['dup','dup', 'nodup']
     with pytest.raises(DuplicateEntryError):
-        await service.create_permissions(permission)
+        await service.create_permissions(permission_strs)
 
 
 @pytest.mark.asyncio
@@ -28,13 +31,13 @@ async def test_create_role_permission_with_exist_permissions(async_db: AsyncSess
 
     role_name = 'supervisor'
     
-    permission=['can_create_user','can_update_user','can_add_role'] #permission ini harus sudah ada
+    permission = [random_lower_string() for _ in range(3)]
 
     await service.create_permissions(permission) #dibuat buat exist
 
     data = RoleCreate(
         name=role_name,
-        permission=permission
+        permission_strs=permission
     )
     role = await service.create_role(data)
 
@@ -54,13 +57,13 @@ async def test_create_role_permission_with_not_exist_permissions(async_db: Async
 
     role_name = 'supervisor'
     
-    permission=['can_create_user','can_update_user','can_add_role'] #permission ini harus sudah ada
+    permission = [random_lower_string() for _ in range(3)]
 
     #await service.create_permissions(permission) #jangan di buat exist
 
     data = RoleCreate(
         name=role_name,
-        permission=permission
+        permission_strs=permission
     )
     role = await service.create_role(data)
 
@@ -73,13 +76,13 @@ async def test_create_role_permission_with_duplicate_roles(async_db: AsyncSessio
 
     role_name = 'supervisor'
     
-    permission=['can_create_user','can_update_user','can_add_role'] #permission ini harus sudah ada
+    permission = [random_lower_string() for _ in range(3)]
 
     #await service.create_permissions(permission) #jangan di buat exist
 
     data = RoleCreate(
         name=role_name,
-        permission=permission
+        permission_strs=permission
     )
     await service.create_role(data)
     
@@ -91,10 +94,10 @@ async def test_create_role_permission_with_duplicate_roles(async_db: AsyncSessio
 async def role_id(async_db: AsyncSession)->str:
 
     service = get_role_service(async_db)
-    permission=['aaa','bbb','ccc']
-    await service.create_permissions(permission)
+    permission_strs=['aaa','bbb','ccc']
+    await service.create_permissions(permission_strs)
 
-    role_in = RoleCreate(name='baru', description='Hello Role', permission=permission)
+    role_in = RoleCreate(name='baru', description='Hello Role', permission_strs=permission_strs)
     role = await service.create_role(role_in)
     return role.id
 
@@ -147,7 +150,7 @@ async def test_update_role_permission_only(async_db: AsyncSession, role_id) -> N
     role_perm_names = [perm.name for perm in role.permissions]
     assert set(role_perm_names) == set(['aaa','bbb','ccc'])  #target permisi
 
-    role_in = RoleUpdate(permission=['bbb','yyy'])
+    role_in = RoleUpdate(permission_strs=['bbb','yyy'])
 
     if role:
         logger.info("BLOK INI DI EKSEKUSI")
