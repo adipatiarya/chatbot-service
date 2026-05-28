@@ -1,21 +1,21 @@
 from datetime import datetime
 import uuid
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Path, Query, status
 from app.api.deps import CurrentUser, SessionDep, get_role_service
 
-from app.models.role import RoleCreate, RolePublic
+from app.models.role import RoleCreate, RolePublic, RoleUpdate
 
 from app.api.dtos.generic import DataList
 
-from app.api.dtos.role_dto import RolePermissionDto, RolePermissionDetail, RolePermissionPublic
+from app.api.dtos.role_dto import RolePermissionDto, RolePermissionDetail
 from app.utils import all_perms, apply_permissions, extract_true_permissions
 
 router = APIRouter(tags=["Role Permissions"], prefix="/roles")
 
 @router.post("", 
     response_model=RolePermissionDetail,
-    status_code=201,
+    status_code=status.HTTP_201_CREATED,
     description="Membuat role baru dengan daftar permission yang diberikan."
 )
 async def create_role(sess: SessionDep, currentUser: CurrentUser, data: RolePermissionDto):
@@ -87,8 +87,7 @@ async def list_roles(
 
 
 @router.get("/{role_id}", response_model=RolePermissionDetail,  description="Informasi detail tentang role dan permissionnya")
-async def  get_role(sess: SessionDep, role_id: uuid.UUID):
-    # Simulasi update ke DB
+async def  get_role(sess: SessionDep, role_id: uuid.UUID = Path(..., description="UUID role")):
     service = get_role_service(sess)
 
     resp = await service.role_crud.get_by_name_or_id(role_id)
@@ -101,3 +100,14 @@ async def  get_role(sess: SessionDep, role_id: uuid.UUID):
         permission = apply_permissions(all_perms(), [perm.name for perm in resp.permissions] )
     )
     return role 
+
+@router.put("/{role_id}",summary="Update role",description="Update data role berdasarkan ID")
+async def update_role(sess: SessionDep,  role_id: uuid.UUID = Path(..., description="UUID role")):
+    service = get_role_service(sess)
+    pass
+
+
+@router.delete("/{role_id}",summary="Delete role",description="Delete data role berdasarkan ID", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_role(sess: SessionDep,  role_id: uuid.UUID = Path(..., description="UUID role")):
+    service = get_role_service(sess)
+    pass
