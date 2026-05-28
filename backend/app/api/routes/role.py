@@ -1,10 +1,14 @@
+from datetime import datetime
 import uuid
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Query
 from app.api.deps import CurrentUser, SessionDep, get_role_service
 
-from app.models.role import RoleCreate
-from app.api.dtos.role_dto import RolePermissionDto, RolePermissionDetail
+from app.models.role import RoleCreate, RolePublic
+
+from app.api.dtos.generic import DataList
+
+from app.api.dtos.role_dto import RolePermissionDto, RolePermissionDetail, RolePermissionPublic
 from app.utils import all_perms, apply_permissions, extract_true_permissions
 
 router = APIRouter(tags=["Role Permissions"], prefix="/roles")
@@ -33,6 +37,54 @@ async def create_role(sess: SessionDep, currentUser: CurrentUser, data: RolePerm
         permission= apply_permissions(all_perms(), [perm.name for perm in resp.permissions] )
     )
     return role 
+
+
+@router.get(
+    "",
+    response_model=DataList[RolePublic],
+    summary="List roles with full query options",
+    description="Daftar role dengan filter generic, multi-field search, pagination, sorting ASC/DESC, dan filter tanggal created_at."
+)
+async def list_roles(
+    sess: SessionDep,
+    page: int = Query(1, ge=1),
+    limit: int = Query(10, ge=1, le=100),
+    name: str | None = Query(None, description="Filter by role name"),
+    description: str | None = Query(None, description="Filter by role description"),
+    search: str | None = Query(None, description="Search keyword in name/description"),
+    order_by: str = Query("created_at", description="Kolom untuk sorting"),
+    order_dir: str = Query("asc", description="Arah sorting: asc/desc"),
+    start_date: datetime | None = Query(None, description="Filter created_at >= start_date"),
+    end_date: datetime | None = Query(None, description="Filter created_at <= end_date"),
+):
+    service = get_role_service(sess)
+
+    # kumpulkan filter spesifik
+    filters = {}
+    if name:
+        filters["name"] = name
+    if description:
+        filters["description"] = description
+
+    # panggil repository dengan semua parameter
+    list_data = await service.role_crud.list_filtered(
+        page=page,
+        limit=limit,
+        filters=filters,
+        search=search,
+        order_by=order_by,
+        order_dir=order_dir,
+        start_date=start_date,
+        end_date=end_date
+    )
+
+    roles = [RolePublic.model_validate(obj) for obj in list_data]
+
+    return DataList[RolePublic](
+        count=len(roles),
+        data=roles
+    )
+
 
 @router.get("/{role_id}", response_model=RolePermissionDetail,  description="Informasi detail tentang role dan permissionnya")
 async def  get_role(sess: SessionDep, role_id: uuid.UUID):

@@ -1,6 +1,7 @@
 from typing import TYPE_CHECKING, Optional
 import uuid
 from datetime import datetime
+from pydantic import BaseModel, ConfigDict
 from sqlalchemy import DateTime
 
 from sqlmodel import  Field, Relationship, SQLModel as Base
@@ -32,13 +33,23 @@ class Role(RoleBase, table=True):
         back_populates="roles", link_model=RolePermission
     )
     
-class RoleCreate(RoleBase):
-    permission_strs: list["str"] = Field(default_factory=list)
+# API schemas (BaseModel)
+class RoleCreate(BaseModel):
+    name: str
+    description: str | None = None
+    permission_strs: list[str] = Field(default_factory=list)
 
-class RoleUpdate(RoleBase):
-    permission_strs: Optional[list[str]] = Field(default_factory=list)
+class RoleUpdate(BaseModel):
     name: Optional[str] = Field(default=None, min_length=2, max_length=128)
-    
-class RolePublic(RoleBase):
+    description: Optional[str] = None
+    permission_strs: list[str] = Field(default_factory=list)
+
+class RolePublic(BaseModel):
     id: uuid.UUID
+    name: str
+    description: str | None = None
     created_at: datetime | None = None
+
+    model_config = ConfigDict(from_attributes=True) 
+
+    

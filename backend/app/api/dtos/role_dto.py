@@ -7,6 +7,7 @@ from pydantic import BaseModel
 
 from app.utils import all_perms
 
+from .generic import DataList
 
 class RolePermissionDto(BaseModel):
     name: str
@@ -16,3 +17,7 @@ class RolePermissionDto(BaseModel):
 class RolePermissionDetail(RolePermissionDto):
     id: uuid.UUID
     created_at: datetime
+
+class RolePermissionPublic(BaseModel):
+    name: str
+

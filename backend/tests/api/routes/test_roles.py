@@ -5,6 +5,16 @@ from httpx import AsyncClient
 from app.core.config import settings
 
 from tests.helpers.util import random_lower_string
+from app.utils import logger
+
+
+@pytest.mark.asyncio
+async def test_get_all_role(client: AsyncClient, superuser_token_headers: dict[str, str]) -> None:
+    r = await client.get(f"{settings.API_V1_STR}/roles", headers=superuser_token_headers)
+    assert 200 == r.status_code
+    render = r.json()
+    logger.info(render)
+
 
 @pytest.mark.asyncio
 async def test_create_roles(client: AsyncClient, superuser_token_headers: dict[str, str]) -> None:
