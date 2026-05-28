@@ -20,8 +20,7 @@ from app.models.permission import Permission, RolePermission
 
 from app.api.deps import get_user_service, get_db, get_role_service
 from app.main import app
-
-from tests.helpers.util import permissions_test
+from app.utils import seed_permission_all
 
 async_engine = create_async_engine(
     url='postgresql+asyncpg://postgres:postgres@localhost:5432/fastapi_db_test',
@@ -81,11 +80,12 @@ async def role_user(async_db: AsyncSession)->str:
 
 @pytest_asyncio.fixture(scope="function", autouse=True)
 async def client(async_db, role):
-
-   
-
-    #crete user fisrt
+    role_service = get_role_service(async_db)
     service = get_user_service(async_db)
+    #seed dulu
+    await seed_permission_all(role_service)
+    #crete user fisrt
+
     user = await service.user_crud.get_by_email(settings.FIRST_SUPERUSER)
 
     if not user:

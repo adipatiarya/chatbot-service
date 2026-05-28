@@ -42,4 +42,3 @@ class RoleUpdate(RoleBase):
 class RolePublic(RoleBase):
     id: uuid.UUID
     created_at: datetime | None = None
-

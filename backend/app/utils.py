@@ -1,7 +1,7 @@
 import logging
 import jwt
 from datetime import timedelta, timezone, datetime
-from typing import Any
+from typing import TYPE_CHECKING, Any, Dict
 from pathlib import Path
 from dataclasses import dataclass
 
@@ -9,8 +9,10 @@ from dataclasses import dataclass
 from app.core.config import settings
 from jinja2 import Template
 
-
 import colorlog
+
+
+
 
 handler = colorlog.StreamHandler()
 handler.setFormatter(colorlog.ColoredFormatter(
@@ -34,6 +36,7 @@ logger.setLevel(logging.INFO)
 class EmailData:
     html_content:str
     subject:str
+
 
 def render_email_template(*, template_name:str, context:dict[str, Any]) -> str:
     path = Path(__file__).parent / "email-templates" / "build" / template_name
@@ -82,6 +85,43 @@ def verify_password_reset_token(*, token:str) -> str | None:
 def get_datetime_utc() -> datetime:
     return datetime.now(timezone.utc)
 
+modules = ["user", "role"]
+
+def all_perms() -> Dict[str, Dict[str, bool]]:
+    actions = ["create", "view", "update", "delete"]
+   
+    return {
+        resource: {f"can_{action}_{resource}": False for action in actions}
+        for resource in modules
+    }
+
+def apply_permissions(base: Dict[str, Dict[str, bool]], allowed: list[str]) -> Dict[str, Dict[str, bool]]:
+    for _, perms in base.items():
+        for perm_name in perms.keys():
+            if perm_name in allowed:
+                perms[perm_name] = True
+    return base
+
+def extract_true_permissions(permission_dict: dict[str, dict[str, bool]]) -> list[str]:
+    result = []
+    for _, perms in permission_dict.items():
+        for perm_name, value in perms.items():
+            if value:  # hanya ambil yang True
+                result.append(perm_name)
+    return result
 
 
+#untuk mengatasi circullar import
+if TYPE_CHECKING:
+    from app.services.role_service import RoleService
+
+async def seed_permission_all(service: "RoleService") -> None:
+    
+    result = []
+    for _, perms in all_perms().items():
+        for perm_name, _ in perms.items():
+            result.append(perm_name)
+
+    #logger.info(f'SEED DIPANGGIL {result}')
+    await service.create_permissions(result)
 
