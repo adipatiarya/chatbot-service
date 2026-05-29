@@ -28,13 +28,14 @@ class UserCrud(Crud[User]):
         return user
     
     def transform(self, user: User) -> UserPublic:
+
         return UserPublic(
             id=user.id,
             email=user.email,
             full_name=user.full_name,
             is_superuser=user.is_superuser,
             is_active=user.is_active,
-            role=user.roles[0].name,
+            role=user.roles[0].name if user.roles else None,
             permissions=list(set([p.name for r in user.roles for p in r.permissions]))
         )
     async def filtered(
