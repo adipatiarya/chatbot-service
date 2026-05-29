@@ -167,8 +167,12 @@ async def test_bulk_users_insert(client: AsyncClient , superuser_token_headers: 
     resp = r.json()
     print(json.dumps(resp, indent=4))
 
-    assert "data" in resp
+    required_keys = ["data", "total"]
+    assert all(key in resp for key in required_keys), "Missing required keys"
     assert isinstance(resp['data'], list)
+    assert isinstance(resp['total'], int)
+   
+
     for user in resp['data']:
         # assert semua key ada
         required_keys = ["id", "email", "full_name","is_superuser","is_active","role", "permissions"]
