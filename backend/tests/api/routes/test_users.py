@@ -2,6 +2,7 @@ import random, pytest, json
 import uuid
 
 from httpx import AsyncClient
+import pytest_asyncio
 from app.core.config import settings
 from backend.app.utils import extract_all_permissions
 from tests.helpers.util import random_email, random_lower_string
@@ -97,7 +98,7 @@ async def test_get_user(client: AsyncClient , superuser_token_headers: dict[str,
     assert payload["role"] == resp['role']
 
 fak = Faker()
-@pytest.mark.asyncio
+@pytest_asyncio.fixture(scope="function")
 async def test_bulk_users_insert(client: AsyncClient , superuser_token_headers: dict[str, str]) -> None:
 
     """ CREATE ROLE BLOCK """
@@ -160,9 +161,12 @@ async def test_bulk_users_insert(client: AsyncClient , superuser_token_headers: 
 
     """ END CREATE USER BLOCK """
 
-
+@pytest.mark.asyncio
+async def test_filter_cek_total(client: AsyncClient , superuser_token_headers: dict[str, str], test_bulk_users_insert):
+    
     """test filter"""
-    r = await client.get(f"{settings.API_V1_STR}/users?page=1&limit=6", headers=superuser_token_headers)
+    test_limit = 5
+    r = await client.get(f"{settings.API_V1_STR}/users?page=1&limit={test_limit}", headers=superuser_token_headers)
     assert 200 == r.status_code
     resp = r.json()
 
@@ -170,6 +174,7 @@ async def test_bulk_users_insert(client: AsyncClient , superuser_token_headers: 
     assert all(key in resp for key in required_keys), "Missing required keys"
     assert isinstance(resp['data'], list)
     assert isinstance(resp['total'], int)
+    assert len(resp['data']) == test_limit
    
 
     for user in resp['data']:
@@ -184,7 +189,6 @@ async def test_bulk_users_insert(client: AsyncClient , superuser_token_headers: 
         assert isinstance(user["role"], str), "role must be string"
         assert isinstance(user["permissions"], list), "permissions must be list"
         assert len(user["permissions"]) == len(set(user["permissions"])), "permissions must be unique"
-
 
 
     
