@@ -156,12 +156,21 @@ async def test_inser_user__bulk_service(async_db: AsyncSession) -> None:
         assert data
     #filters={'role':'superadmin'}
 
-    resepon_list = await service.user_crud.filtered(search='mantap')
-
-    transform = [ service.populate_user(x) for x in resepon_list ]
-
-    print (transform)
+    filter = await service.user_crud.filtered(search='mantap')
     
+    assert len(filter.data) > 0
 
+    # pastikan setiap full_name mengandung kata mantap
+    for user in filter.data:
+        assert "mantap" in user.full_name.lower(), f"full_name does not contain 'mantap"
+    
+    
+    filter = await service.user_crud.filtered(search='sekali')
+    
+    assert len(filter.data) > 0
+
+    # pastikan setiap full_name mengandung kata mantap
+    for user in filter.data:
+        assert "sekali" in user.full_name.lower(), f"full_name does not contain 'sekali"
 
     

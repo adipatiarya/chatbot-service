@@ -165,7 +165,6 @@ async def test_bulk_users_insert(client: AsyncClient , superuser_token_headers: 
     r = await client.get(f"{settings.API_V1_STR}/users?page=1&limit=6", headers=superuser_token_headers)
     assert 200 == r.status_code
     resp = r.json()
-    print(json.dumps(resp, indent=4))
 
     required_keys = ["data", "total"]
     assert all(key in resp for key in required_keys), "Missing required keys"
