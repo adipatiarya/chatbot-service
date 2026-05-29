@@ -78,38 +78,23 @@ async def get_current_user(sess: SessionDep, token: TokenDep):
 CurrentUser = Annotated[User, Depends(get_current_user)]
 
 
-def authorize(*, permissions:List[UserPermission]) -> bool:
-     def dependency(curren_user: CurrentUser):
-         
-         """"
-          jika super user permission tidak berlaku
-          default aktive semua
-         """
-         if curren_user.is_superuser:
-             return curren_user
-         """
-         baru test. jangan lupa ini harus ambil dari object user asli
-         required = current_user.permissions
-         """
-         user_permissi_dummy = [
-             UserPermission.USER_CREATE,
-             UserPermission.USER_READ,
-             UserPermission.USER_UPDATE, 
-             UserPermission.USER_DELETE,
-          ] #jangan lupa di ganti
-
-         if not any(perm in  user_permissi_dummy for perm in permissions):
-             raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"Missing one of required permissions: {permissions}"
-            )
-         
-         return curren_user
-     return dependency
-
-
 def get_current_user_superadmin(current_user: CurrentUser):
     if not current_user.is_superuser:
         raise HTTPException(status_code=403, detail='The user doesn\'t have enough privileges')
     return current_user
 
+
+def require_permissions(required: List[str]):
+    def dependency(current_user:CurrentUser):
+        # pengecualian: kalau superuser, langsung lolos
+        if current_user.is_superuser:
+            return current_user
+        
+        user_permissions = current_user.permissions
+        if not all(perm in user_permissions for perm in required):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Permission denied"
+            )
+        return current_user
+    return dependency

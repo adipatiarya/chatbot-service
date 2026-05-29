@@ -5,6 +5,9 @@ import pytest
 from httpx import AsyncClient
 from app.core.config import settings
 
+from app.api.deps import get_role_service, get_user_service
+from app.models.role import RoleCreate
+from app.models.user import UserCreate
 from tests.helpers.util import random_lower_string
 from app.utils import logger
 
@@ -237,3 +240,109 @@ async def test_update_role(client: AsyncClient, normal_user_token_headers: dict[
     assert json.dumps(json_data["permission"], sort_keys=True) == json.dumps(payload["permission"], sort_keys=True)
 
 
+@pytest.mark.asyncio
+async def test_create_role_with_unauthorize_permission(client: AsyncClient, async_db):
+    #buat role
+    permission = []
+    
+    role_in = RoleCreate(name='manual', description='wkwkw', permission_strs=permission)
+    service = get_role_service(async_db)
+    role = await service.create_role(role_in)
+    assert role.name == 'manual'
+
+    #buat user
+    user_in = UserCreate(email='jika@gmail.com', password='ayamsayur', role='manual')
+    service = get_user_service(async_db)
+    user = await service.create_user(user_in)
+    assert user.email == 'jika@gmail.com'
+
+    login_data = {
+        "username":'jika@gmail.com',
+        "password": 'ayamsayur'
+    }
+   
+    r = await client.post(f"{settings.API_V1_STR}/auth/access-token", data=login_data)
+    tokens = r.json()
+    a_token = tokens["access_token"]
+    headers = {"Authorization":f"Bearer {a_token}"}
+
+    #create role
+    r = await client.post(f"{settings.API_V1_STR}/roles", headers=headers, json={})
+    assert 403 == r.status_code
+
+
+@pytest.mark.asyncio
+async def test_create_role_with_authorize_permission(client: AsyncClient, async_db):
+    #buat role
+    permission = ['can_create_role']
+    
+    role_in = RoleCreate(name='manual', description='wkwkw', permission_strs=permission)
+    service = get_role_service(async_db)
+    role = await service.create_role(role_in)
+    assert role.name == 'manual'
+
+    #buat user
+    user_in = UserCreate(email='jika@gmail.com', password='ayamsayur', role='manual')
+    service = get_user_service(async_db)
+    user = await service.create_user(user_in)
+    assert user.email == 'jika@gmail.com'
+
+    login_data = {
+        "username":'jika@gmail.com',
+        "password": 'ayamsayur'
+    }
+   
+    r = await client.post(f"{settings.API_V1_STR}/auth/access-token", data=login_data)
+    tokens = r.json()
+    a_token = tokens["access_token"]
+    headers = {"Authorization":f"Bearer {a_token}"}
+
+    payload = {
+        "name": random_lower_string(),
+        "description": "string",
+        "permission": {
+            "user": {
+                "can_create_user": False,
+                "can_delete_user": True,
+                "can_update_user": False,
+                "can_view_user": False
+            },
+            "role": {
+                "can_create_role": False,
+                "can_delete_role": False,
+                "can_update_role": False,
+                "can_view_role": False
+            }
+        }
+    }
+
+    r = await client.post(f"{settings.API_V1_STR}/roles", headers=headers, json=payload)
+    assert 201 == r.status_code
+
+
+@pytest.mark.asyncio
+async def test_create_role_with_superadmin_account(client: AsyncClient, superuser_token_headers: dict[str, str]) -> None:
+
+    role_name  = random_lower_string()
+
+    payload = {
+        "name": role_name,
+        "description": "string",
+        "permission": {
+            "user": {
+                "can_create_user": False,
+                "can_delete_user": True,
+                "can_update_user": False,
+                "can_view_user": False
+            },
+            "role": {
+                "can_create_role": False,
+                "can_delete_role": False,
+                "can_update_role": False,
+                "can_view_role": False
+            }
+        }
+    }
+
+    r = await client.post(f"{settings.API_V1_STR}/roles", headers=superuser_token_headers, json=payload)
+    assert 201 == r.status_code

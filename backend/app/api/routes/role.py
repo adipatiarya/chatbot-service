@@ -1,8 +1,8 @@
 from datetime import datetime
 import uuid
 
-from fastapi import APIRouter, HTTPException, Path, Query, status
-from app.api.deps import CurrentUser, SessionDep, get_role_service
+from fastapi import APIRouter, Depends, HTTPException, Path, Query, status
+from app.api.deps import CurrentUser, SessionDep, get_role_service, require_permissions
 
 from app.models.role import RoleCreate, RolePublic, RoleUpdate
 
@@ -16,8 +16,10 @@ router = APIRouter(tags=["Role Permissions"], prefix="/roles")
 @router.post("", 
     response_model=RolePermissionDetail,
     status_code=status.HTTP_201_CREATED,
-    description="Membuat role baru dengan daftar permission yang diberikan."
+    description="Membuat role baru dengan daftar permission yang diberikan.",
+    dependencies=[Depends(require_permissions(["can_create_role"]))]
 )
+
 async def create_role(sess: SessionDep, currentUser: CurrentUser, data: RolePermissionDto):
 
     service = get_role_service(sess)
