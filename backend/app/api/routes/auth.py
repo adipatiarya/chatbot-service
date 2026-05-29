@@ -1,7 +1,7 @@
 from datetime import timedelta
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 
 from app.api.deps import CurrentUser, get_user_service
@@ -30,9 +30,9 @@ async def login_access_token(sess: SessionDep, form_data: Annotated[OAuth2Passwo
     service = get_user_service(sess)
     user = await service.authenticate(form_data.username, form_data.password)
     if not user:
-        raise HTTPException(status_code=400, detail='Incorrect email and password')
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Incorrect email and password')
     elif not user.is_active:
-        raise HTTPException(status_code=400, detail='User inactive')
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='User inactive')
     
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     return Token(

@@ -4,7 +4,7 @@ import uuid
 from fastapi import APIRouter, Depends, HTTPException, Path, Query, status
 
 from app.api.deps import  CurrentUser, SessionDep, get_user_service, require_permissions
-from app.models.user import User, UserCreate, UserPublic
+from app.models.user import User, UserCreate, UserPublic, UserUpdate
 from app.api.dtos.generic import  Paginated
 
 router = APIRouter(prefix="/users", tags=["User"])
@@ -83,3 +83,35 @@ async def list_user(
     )
     return list_user
 
+
+@router.put("/{user_id}", response_model=UserPublic, dependencies=[Depends(require_permissions(["can_update_user"]))])
+async def update_user(*, session: SessionDep, user_update: UserUpdate, current: CurrentUser , user_id: uuid.UUID  = Path(..., description="UUID user")) -> None:
+    """
+    Edit user.
+    """
+    service = get_user_service(session)
+
+    user = await service.user_crud.roles(user_id)
+
+    if not user:
+        raise HTTPException(status_code=400, detail=f'User id tidak ditemukan')
+    
+    user = await service.update_user(user, user_update)
+    
+    return service.populate_user(user)
+
+@router.delete("/{user_id}", dependencies=[Depends(require_permissions(["can_delete_user"]))], status_code=status.HTTP_204_NO_CONTENT)
+async def delete_user(*, session: SessionDep, current: CurrentUser,  user_id: uuid.UUID  = Path(..., description="UUID user")) -> None:
+    """
+    Delete user.
+    """
+    service = get_user_service(session)
+
+    user = await service.user_crud.roles(user_id)
+
+    if not user:
+        raise HTTPException(status_code=400, detail=f'User id tidak ditemukan')
+    """
+    Delete user Belum dimplemtn.
+
+    """
