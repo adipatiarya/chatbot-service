@@ -103,22 +103,12 @@ class UserService:
         return db_user
     
     def populate_user(self, user: User) -> UserPublic:
-        extra_data = {
-            "role": None,
-            "permissions": []
-        }
-
-        if user.roles:
-            role = user.roles[0]  # ambil role pertama
-            extra_data["role"] = role.name
-            perms = {p.name for r in user.roles for p in r.permissions}
-            extra_data["permissions"] = list(perms)
-        
         return UserPublic(
             id=user.id,
             email=user.email,
             full_name=user.full_name,
             is_superuser=user.is_superuser,
             is_active=user.is_active,
-            **extra_data
+            role=user.roles[0].name,
+            permissions=list(set([p.name for r in user.roles for p in r.permissions]))
         )

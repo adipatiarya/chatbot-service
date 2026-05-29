@@ -1,11 +1,13 @@
 from datetime import datetime
+from typing import Any
 import uuid
 
-from sqlalchemy import desc, or_
+from sqlalchemy import desc, func, or_
 from sqlalchemy.orm import selectinload
-from sqlmodel import asc, select
+from sqlmodel import  asc, select
 
-from app.models.user import User
+from app.api.dtos.generic import Paginated
+from app.models.user import User, UserPublic
 from app.models.role import Role
 from app.models.permission import Permission
 from .crud import Crud
@@ -24,7 +26,17 @@ class UserCrud(Crud[User]):
         result = await self.session.execute(select(User).options(selectinload(User.roles).selectinload(Role.permissions)).where(User.id == user_id))
         user = result.scalar_one()
         return user
-
+    
+    def transform(self, user: User) -> UserPublic:
+        return UserPublic(
+            id=user.id,
+            email=user.email,
+            full_name=user.full_name,
+            is_superuser=user.is_superuser,
+            is_active=user.is_active,
+            role=user.roles[0].name,
+            permissions=list(set([p.name for r in user.roles for p in r.permissions]))
+        )
     async def filtered(
         self,
         page: int = 1,
@@ -35,8 +47,8 @@ class UserCrud(Crud[User]):
         order_dir: str = "asc",
         start_date: datetime | None = None,
         end_date: datetime | None = None,
-        search_fields: list[str] | None = None,   # <--- tambahan parameter
-    ) -> list[User]:
+        search_fields: list[str] | None = None,
+    ) -> Paginated[UserPublic]:
         
         query = select(User)
 
@@ -47,7 +59,6 @@ class UserCrud(Crud[User]):
                 if column is not None and value:
                     query = query.where(column.ilike(f"%{value}%"))
 
-            # filter relasi Permission via Role
             if "permission" in filters:
                 query = (
                     query.join(User.roles)
@@ -57,7 +68,6 @@ class UserCrud(Crud[User]):
 
         # search multi-field dinamis
         if search:
-            # default fields kalau tidak diberikan
             if not search_fields:
                 search_fields = ["email", "full_name"]
 
@@ -67,7 +77,6 @@ class UserCrud(Crud[User]):
                 if column is not None:
                     conditions.append(column.ilike(f"%{search}%"))
 
-            # tambahkan Permission.name
             conditions.append(Permission.name.ilike(f"%{search}%"))
 
             query = (
@@ -87,11 +96,28 @@ class UserCrud(Crud[User]):
         if column is not None:
             query = query.order_by(desc(column) if order_dir.lower() == "desc" else asc(column))
 
-        # eager load roles + permissions
+        # eager load
         query = query.options(selectinload(User.roles).selectinload(Role.permissions))
 
-        # pagination
+        # --- hitung total sesuai filter ---
+        total_result = await self.session.execute(
+            select(func.count()).select_from(query.subquery())
+        )
+        total = total_result.scalar_one()
+
+        # --- ambil data sesuai pagination ---
         result = await self.session.execute(
             query.offset((page - 1) * limit).limit(limit)
         )
-        return result.scalars().all()
+        data = [ self.transform(x) for x in  result.scalars().all() ]
+
+        # --- hitung total halaman ---
+        total_pages = (total // limit) + (1 if total % limit else 0)
+        return Paginated[UserPublic](
+            data=data,
+            total=total,
+            page=page,
+            limit=limit,
+            total_pages=total_pages
+        )
+

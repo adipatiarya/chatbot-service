@@ -1,7 +1,11 @@
-import pytest
+import random, pytest, json
+import uuid
+
 from httpx import AsyncClient
 from app.core.config import settings
+from backend.app.utils import extract_all_permissions
 from tests.helpers.util import random_email, random_lower_string
+from faker import Faker
 
 @pytest.mark.asyncio
 async def test_create_user(client: AsyncClient , superuser_token_headers: dict[str, str]) -> None:
@@ -91,3 +95,98 @@ async def test_get_user(client: AsyncClient , superuser_token_headers: dict[str,
     resp = r.json()
     assert payload["email"] == resp['email']
     assert payload["role"] == resp['role']
+
+fak = Faker()
+@pytest.mark.asyncio
+async def test_bulk_users_insert(client: AsyncClient , superuser_token_headers: dict[str, str]) -> None:
+
+    """ CREATE ROLE BLOCK """
+    role_names = ["teacher", "student", "moderator", "guest"]
+    roles_payload = []
+    
+    for role_name in role_names:
+        perm = random.sample(extract_all_permissions(),k=random.randint(2, len(extract_all_permissions())))
+        categories = {p.split("_")[2] for p in perm}
+        
+        actions = ["create", "view", "update", "delete"]
+
+        # bangun permission dict
+        permission_dict = {
+            category: {
+                f"can_{action}_{category}": f"can_{action}_{category}" in perm
+                for action in actions
+            }
+            for category in categories
+        }
+
+         # susun payload sesuai API
+        payload = {
+            "name": role_name.lower(),
+            "description": f"Auto-generated role {role_name}",
+            "permission": permission_dict
+        }
+        roles_payload.append(payload)
+    
+    #print(json.dumps(roles_payload, indent=4))
+
+    for rp in roles_payload:
+        r = await client.post(f"{settings.API_V1_STR}/roles", headers=superuser_token_headers, json=rp)
+        assert r.status_code == 201
+
+    """ END CREATE ROLE  BLOCK """
+
+    """ CREATE USER BLOCK """
+    users_payload = []
+
+    for _ in range(1, 21):
+        email = fak.email()
+        full_name = fak.name()
+        password = random_lower_string()
+        role = random.choice(role_names)
+        payload = {
+            'email': email,
+            'full_name': full_name,
+            'password': password,
+            'role': role
+        }
+        users_payload.append(payload)
+    
+    #print(json.dumps(users_payload, indent=4))
+
+    #create user
+    for usr in users_payload:
+        r = await client.post(f"{settings.API_V1_STR}/users", headers=superuser_token_headers, json=usr)
+        assert 201 == r.status_code
+
+    """ END CREATE USER BLOCK """
+
+
+    """test filter"""
+    r = await client.get(f"{settings.API_V1_STR}/users?page=1&limit=6", headers=superuser_token_headers)
+    assert 200 == r.status_code
+    resp = r.json()
+    print(json.dumps(resp, indent=4))
+
+    assert "data" in resp
+    assert isinstance(resp['data'], list)
+    for user in resp['data']:
+        # assert semua key ada
+        required_keys = ["id", "email", "full_name","is_superuser","is_active","role", "permissions"]
+        assert all(key in user for key in required_keys), "Missing required keys"
+        # cek tipe value
+        assert isinstance(user["id"], str), "id must be uid"
+        assert isinstance(user["email"], str), "email must be string"
+        assert isinstance(user["is_superuser"], bool), "is_superuser must be bool"
+        assert isinstance(user["is_active"], bool), "is_active must be bool"
+        assert isinstance(user["role"], str), "role must be string"
+        assert isinstance(user["permissions"], list), "permissions must be list"
+        assert len(user["permissions"]) == len(set(user["permissions"])), "permissions must be unique"
+
+
+
+    
+
+
+
+
+

@@ -1,13 +1,11 @@
 from datetime import datetime
 from typing import Optional
 import uuid
-from fastapi import APIRouter, Depends, HTTPException, Path, Query, status
-from pydantic import BaseModel, EmailStr
+from fastapi import APIRouter, HTTPException, Path, Query, status
 
-from app.api.deps import  CurrentUser, SessionDep, get_role_service, get_user_service
-from app.models.user import UserCreate, UserPublic
-from app.api.dtos.generic import DataList
-from app.models.role import RolePublic
+from app.api.deps import  CurrentUser, SessionDep, get_user_service
+from app.models.user import User, UserCreate, UserPublic
+from app.api.dtos.generic import  Paginated
 
 router = APIRouter(prefix="/users", tags=["User"])
 
@@ -42,9 +40,9 @@ async def get_user_id(*, session: SessionDep, user_id: uuid.UUID  = Path(..., de
     
 @router.get(
     "",
-    response_model=DataList[UserPublic],
-    summary="List roles with full query options",
-    description="Daftar role dengan filter generic, multi-field search, pagination, sorting ASC/DESC, dan filter tanggal created_at."
+    response_model=Paginated[UserPublic],
+    summary="List users with full query options",
+    description="Daftar user dengan filter generic, multi-field search, pagination, sorting ASC/DESC, dan filter tanggal created_at."
 )
 async def list_user(
     sess: SessionDep,
@@ -78,4 +76,5 @@ async def list_user(
         start_date=start_date,
         end_date=end_date,
     )
-    return [ service.populate_user(x) for x in list_user ]
+    return list_user
+
