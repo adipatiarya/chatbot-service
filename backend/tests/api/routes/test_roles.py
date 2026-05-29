@@ -101,7 +101,7 @@ async def test_bulk_insert_and_pagination(client: AsyncClient, normal_user_token
     roles_data = []
     for _ in range(10):
         roles_data.append({
-            "name": faker.word(),
+            "name": random_lower_string(),
             "description": faker.sentence(),
             "permission": {
                 "user": {
