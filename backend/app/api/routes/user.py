@@ -1,10 +1,13 @@
 from datetime import datetime
+from typing import Optional
 import uuid
-from fastapi import APIRouter, Depends, HTTPException, Path, status
+from fastapi import APIRouter, Depends, HTTPException, Path, Query, status
 from pydantic import BaseModel, EmailStr
 
-from app.api.deps import  CurrentUser, SessionDep, get_user_service
+from app.api.deps import  CurrentUser, SessionDep, get_role_service, get_user_service
 from app.models.user import UserCreate, UserPublic
+from app.api.dtos.generic import DataList
+from app.models.role import RolePublic
 
 router = APIRouter(prefix="/users", tags=["User"])
 
@@ -37,3 +40,42 @@ async def get_user_id(*, session: SessionDep, user_id: uuid.UUID  = Path(..., de
     
     return service.populate_user(user)
     
+@router.get(
+    "",
+    response_model=DataList[UserPublic],
+    summary="List roles with full query options",
+    description="Daftar role dengan filter generic, multi-field search, pagination, sorting ASC/DESC, dan filter tanggal created_at."
+)
+async def list_user(
+    sess: SessionDep,
+    page: int = Query(1, ge=1),
+    limit: int = Query(10, ge=1, le=100),
+    search: Optional[str] = None,
+    role: Optional[str] = None,                # <--- tambahan parameter
+    permission: Optional[str] = None,          # <--- tambahan parameter
+    order_by: str = "created_at",
+    order_dir: str = "asc",
+    start_date: Optional[datetime] = None,
+    end_date: Optional[datetime] = None,
+):
+    service = get_user_service(sess)
+
+
+     # siapkan dict filters
+    filters = {}
+    if role:
+        filters["role"] = role
+    if permission:
+        filters["permission"] = permission
+
+    list_user = await service.user_crud.filtered(
+        page=page,
+        limit=limit,
+        filters=filters,
+        search=search,
+        order_by=order_by,
+        order_dir=order_dir,
+        start_date=start_date,
+        end_date=end_date,
+    )
+    return [ service.populate_user(x) for x in list_user ]

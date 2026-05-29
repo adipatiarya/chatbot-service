@@ -75,7 +75,7 @@ async def list_roles(
         order_by=order_by,
         order_dir=order_dir,
         start_date=start_date,
-        end_date=end_date
+        end_date=end_date,
     )
 
     roles = [RolePublic.model_validate(obj) for obj in list_data]

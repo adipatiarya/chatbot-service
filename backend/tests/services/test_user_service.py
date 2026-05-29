@@ -1,8 +1,10 @@
+import random
+
 from fastapi.encoders import jsonable_encoder
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.user import User, UserCreate, UserUpdate
+from app.models.user import User, UserCreate, UserUpdate, UserPublic
 from app.core.config import settings
 
 from app.models.role import RoleCreate
@@ -119,3 +121,47 @@ async def test_check_user_is_normal_ruser_service(async_db: AsyncSession, role:s
 
     user = await service.create_user(user_create=user_in)
     assert user.is_superuser is False
+
+from faker import Faker
+from app.utils import extract_all_permissions
+faker = Faker()
+
+@pytest.mark.asyncio
+async def test_inser_user__bulk_service(async_db: AsyncSession) -> None:
+
+    service = get_role_service(async_db)
+
+    role_in_list: list[RoleCreate] = []
+
+    for _ in range (10):
+        perm = random.choices(extract_all_permissions(), k=(random.choice([int(i) for i in range(2, len(extract_all_permissions()) - 1)])))
+        role_in = RoleCreate(name=random_lower_string(), permission_strs=list(dict.fromkeys(perm)))
+        role_in_list.append(role_in)
+
+    for role_in in role_in_list:
+        r = await service.create_role(role_in)
+        assert r
+
+    password = random_lower_string()
+
+    service = get_user_service(async_db)
+    user_list :list[UserCreate] = []
+
+    for _ in range(10):
+        user_in = UserCreate(email=faker.email(), password=password, role=random.choice([i.name  for i in role_in_list]), full_name=faker.word(ext_word_list=['mantap','sekali']))
+        user_list.append(user_in)
+
+    for user in user_list:
+        data = await service.create_user(user)
+        assert data
+    #filters={'role':'superadmin'}
+
+    resepon_list = await service.user_crud.filtered(search='mantap')
+
+    transform = [ service.populate_user(x) for x in resepon_list ]
+
+    print (transform)
+    
+
+
+    
