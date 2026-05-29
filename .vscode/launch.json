@@ -33,6 +33,14 @@
             "args": ["-s", "-v", "tests/api/routes/test_users.py"],
             "cwd": "${workspaceFolder}/backend"
         },
+        {
+            "name": "Test Api Roles",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "pytest",
+            "args": ["-s", "-v", "tests/api/routes/test_roles.py"],
+            "cwd": "${workspaceFolder}/backend"
+        },
 
         {
             "name": "Test Service Roles",

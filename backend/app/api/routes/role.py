@@ -45,7 +45,8 @@ async def create_role(sess: SessionDep, currentUser: CurrentUser, data: RolePerm
     "",
     response_model=DataList[RolePublic],
     summary="List roles with full query options",
-    description="Daftar role dengan filter generic, multi-field search, pagination, sorting ASC/DESC, dan filter tanggal created_at."
+    description="Daftar role dengan filter generic, multi-field search, pagination, sorting ASC/DESC, dan filter tanggal created_at.",
+    dependencies=[Depends(require_permissions(["can_view_role"]))]
 )
 async def list_roles(
     sess: SessionDep,
@@ -88,7 +89,10 @@ async def list_roles(
     )
 
 
-@router.get("/{role_id}", response_model=RolePermissionDetail,  description="Informasi detail tentang role dan permissionnya")
+@router.get("/{role_id}", 
+    response_model=RolePermissionDetail,  
+    description="Informasi detail tentang role dan permissionnya",  
+    dependencies=[Depends(require_permissions(["can_view_role","can_update_role"]))])
 async def  get_role(sess: SessionDep, role_id: uuid.UUID  = Path(..., description="UUID role")):
 
     service = get_role_service(sess)
@@ -106,7 +110,11 @@ async def  get_role(sess: SessionDep, role_id: uuid.UUID  = Path(..., descriptio
     )
     return role 
 
-@router.put("/{role_id}",summary="Update role",description="Update data role berdasarkan ID", response_model=RolePermissionDetail)
+@router.put("/{role_id}",
+            summary="Update role",
+            description="Update data role berdasarkan ID", 
+            response_model=RolePermissionDetail,  
+            dependencies=[Depends(require_permissions(["can_update_role"]))])
 async def update_role(sess: SessionDep, data: RolePermissionDto,  role_id: uuid.UUID = Path(..., description="UUID role")):
     service = get_role_service(sess)
     role = await service.role_crud.get_by_name_or_id(role_id)
@@ -130,7 +138,11 @@ async def update_role(sess: SessionDep, data: RolePermissionDto,  role_id: uuid.
     return role 
         
 
-@router.delete("/{role_id}",summary="Delete role",description="Delete data role berdasarkan ID", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{role_id}",summary="Delete role",
+        description="Delete data role berdasarkan ID",
+        status_code=status.HTTP_204_NO_CONTENT, 
+        dependencies=[Depends(require_permissions(["can_delete_role"]))]
+    )
 async def delete_role(sess: SessionDep,  role_id: uuid.UUID = Path(..., description="UUID role")):
     service = get_role_service(sess)
     role = await service.role_crud.get_by_name_or_id(role_id)
