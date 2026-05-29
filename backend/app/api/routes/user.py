@@ -1,15 +1,19 @@
 from datetime import datetime
 from typing import Optional
 import uuid
-from fastapi import APIRouter, HTTPException, Path, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Path, Query, status
 
-from app.api.deps import  CurrentUser, SessionDep, get_user_service
+from app.api.deps import  CurrentUser, SessionDep, get_user_service, require_permissions
 from app.models.user import User, UserCreate, UserPublic
 from app.api.dtos.generic import  Paginated
 
 router = APIRouter(prefix="/users", tags=["User"])
 
-@router.post("", status_code=status.HTTP_201_CREATED, response_model=UserPublic)
+@router.post("", 
+    status_code=status.HTTP_201_CREATED, 
+    response_model=UserPublic,
+    dependencies=[Depends(require_permissions(["can_create_user"]))]
+)
 async def create_user(*, session: SessionDep, user_in: UserCreate, current_user: CurrentUser) -> None:
     """
     Create new user.
@@ -24,7 +28,7 @@ async def create_user(*, session: SessionDep, user_in: UserCreate, current_user:
     return service.populate_user(user)
 
 
-@router.get("/{user_id}", response_model=UserPublic)
+@router.get("/{user_id}", response_model=UserPublic, dependencies=[Depends(require_permissions(["can_view_user"]))])
 async def get_user_id(*, session: SessionDep, user_id: uuid.UUID  = Path(..., description="UUID user")) -> None:
     """
     Create new user.
@@ -42,7 +46,8 @@ async def get_user_id(*, session: SessionDep, user_id: uuid.UUID  = Path(..., de
     "",
     response_model=Paginated[UserPublic],
     summary="List users with full query options",
-    description="Daftar user dengan filter generic, multi-field search, pagination, sorting ASC/DESC, dan filter tanggal created_at."
+    description="Daftar user dengan filter generic, multi-field search, pagination, sorting ASC/DESC, dan filter tanggal created_at.",
+    dependencies=[Depends(require_permissions(["can_view_user"]))]
 )
 async def list_user(
     sess: SessionDep,

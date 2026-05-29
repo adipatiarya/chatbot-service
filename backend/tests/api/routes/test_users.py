@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 import random, pytest, json
 import uuid
 
@@ -98,6 +99,8 @@ async def test_get_user(client: AsyncClient , superuser_token_headers: dict[str,
     assert payload["role"] == resp['role']
 
 fak = Faker()
+keyword:str = None
+
 @pytest_asyncio.fixture(scope="function")
 async def test_bulk_users_insert(client: AsyncClient , superuser_token_headers: dict[str, str]) -> None:
 
@@ -138,10 +141,11 @@ async def test_bulk_users_insert(client: AsyncClient , superuser_token_headers: 
 
     """ CREATE USER BLOCK """
     users_payload = []
+    
 
     for _ in range(1, 21):
         email = fak.email()
-        full_name = fak.name()
+        full_name = keyword = fak.name()
         password = random_lower_string()
         role = random.choice(role_names)
         payload = {
@@ -190,8 +194,62 @@ async def test_filter_cek_total(client: AsyncClient , superuser_token_headers: d
         assert isinstance(user["permissions"], list), "permissions must be list"
         assert len(user["permissions"]) == len(set(user["permissions"])), "permissions must be unique"
 
-
+@pytest.mark.asyncio
+async def test_filter(client: AsyncClient , superuser_token_headers: dict[str, str], test_bulk_users_insert):
     
+    """test filter"""
+    test_limit = 5
+    r = await client.get(f"{settings.API_V1_STR}/users?page=1&limit={test_limit}", headers=superuser_token_headers)
+    assert 200 == r.status_code
+    resp = r.json()
+
+    required_keys = ["data", "total"]
+    assert all(key in resp for key in required_keys), "Missing required keys"
+    assert isinstance(resp['data'], list)
+    assert isinstance(resp['total'], int)
+    assert len(resp['data']) == test_limit
+   
+
+    for user in resp['data']:
+        # assert semua key ada
+        required_keys = ["id", "email", "full_name","is_superuser","is_active","role", "permissions"]
+        assert all(key in user for key in required_keys), "Missing required keys"
+        # cek tipe value
+        assert isinstance(user["id"], str), "id must be uid"
+        assert isinstance(user["email"], str), "email must be string"
+        assert isinstance(user["is_superuser"], bool), "is_superuser must be bool"
+        assert isinstance(user["is_active"], bool), "is_active must be bool"
+        assert isinstance(user["role"], str), "role must be string"
+        assert isinstance(user["permissions"], list), "permissions must be list"
+        assert len(user["permissions"]) == len(set(user["permissions"])), "permissions must be unique"
+    
+
+    limit = 3
+    r = await client.get(f"{settings.API_V1_STR}/users?page=1&limit={limit}", headers=superuser_token_headers)
+    assert r.status_code == 200
+    resp = r.json()
+    assert len(resp["data"]) <= limit
+    assert resp["total"] >= len(resp["data"])
+    total_pages = (resp["total"] // limit) + (1 if resp["total"] % limit else 0)
+    assert resp["total_pages"] == total_pages
+
+    #test sort
+    r = await client.get(f"{settings.API_V1_STR}/users?order_by=full_name&order_dir=asc", headers=superuser_token_headers)
+    assert r.status_code == 200
+    resp = r.json()
+    names = [u["full_name"].lower() for u in resp["data"]]
+    assert names == sorted(names)
+
+    start = (datetime.utcnow() - timedelta(days=30)).isoformat()
+    end = datetime.utcnow().isoformat()
+    r = await client.get(f"{settings.API_V1_STR}/users?start_date={start}&end_date={end}", headers=superuser_token_headers)
+    assert r.status_code == 200
+    resp = r.json()
+    for user in resp["data"]:
+        created_at = datetime.fromisoformat(user["created_at"])
+        assert start <= created_at.isoformat() <= end
+
+  
 
 
 
