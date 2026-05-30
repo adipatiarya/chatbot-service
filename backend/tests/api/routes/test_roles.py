@@ -50,6 +50,8 @@ async def test_create_roles(client: AsyncClient, normal_user_token_headers: dict
     assert role_name == resp["name"]
     assert "description" in resp
     assert "permission" in resp
+    assert "created_at" in resp
+    assert "updated_at" in resp
     assert json.dumps(resp["permission"], sort_keys=True) == json.dumps(payload["permission"], sort_keys=True)
 
 @pytest.mark.asyncio
@@ -90,6 +92,8 @@ async def test_role_by_id(client: AsyncClient, normal_user_token_headers: dict[s
     assert role_name == resp["name"]
     assert "description" in resp
     assert "permission" in resp
+    assert "created_at" in resp
+    assert "updated_at" in resp
     assert json.dumps(resp["permission"], sort_keys=True) == json.dumps(payload["permission"], sort_keys=True)
 
 

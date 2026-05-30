@@ -24,6 +24,10 @@ class Role(RoleBase, table=True):
         default_factory=get_datetime_utc,
         sa_type=DateTime(timezone=True),  # type: ignore
     )
+    updated_at: datetime | None = Field(
+        default=None,
+        sa_type=DateTime(timezone=True),  # type: ignore
+    )
      # relasi ke user melalui tabel penghubung
     users: list["User"] = Relationship(
         back_populates="roles", link_model=UserRole
@@ -43,11 +47,13 @@ class RoleUpdate(BaseModel):
     name: Optional[str] = Field(default=None, min_length=2, max_length=128)
     description: Optional[str] = None
     permission_strs: list[str] = Field(default_factory=list)
+    updated_at: Optional[datetime]  = get_datetime_utc()
 
 class  RolePublic(BaseModel):
     id: uuid.UUID
     name: str
     created_at: datetime
+    updated_at: datetime | None = None
     users: list[str] = []
     permissions: list[str] = []
     total_user: int = 0

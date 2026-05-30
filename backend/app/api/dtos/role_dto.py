@@ -1,13 +1,12 @@
 
 from datetime import datetime
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 import uuid
 
 from pydantic import BaseModel
 
 from app.utils import all_perms
 
-from .generic import DataList
 
 class RolePermissionDto(BaseModel):
     name: str
@@ -17,6 +16,7 @@ class RolePermissionDto(BaseModel):
 class RolePermissionDetail(RolePermissionDto):
     id: uuid.UUID
     created_at: datetime
+    updated_at: Optional[Any] = None
 
 class RolePermissionPublic(BaseModel):
     name: str

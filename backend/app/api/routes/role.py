@@ -36,6 +36,7 @@ async def create_role(sess: SessionDep, currentUser: CurrentUser, data: RolePerm
         created_at=resp.created_at,     # server generate
         name=resp.name,
         description=resp.description,
+        updated_at=resp.updated_at,
         permission= apply_permissions(all_perms(), [perm.name for perm in resp.permissions] )
     )
     return role 
@@ -101,6 +102,7 @@ async def  get_role(sess: SessionDep, role_id: uuid.UUID  = Path(..., descriptio
         created_at=resp.created_at,     # server generate
         name=resp.name,
         description=resp.description,
+        updated_at=resp.updated_at,
         permission = apply_permissions(all_perms(), [perm.name for perm in resp.permissions] )
     )
     return role 
@@ -128,6 +130,7 @@ async def update_role(sess: SessionDep, data: RolePermissionDto,  role_id: uuid.
         created_at=resp.created_at,     # server generate
         name=resp.name,
         description=resp.description,
+        updated_at=resp.updated_at,
         permission= apply_permissions(all_perms(), [perm.name for perm in resp.permissions] )
     )
     return role 

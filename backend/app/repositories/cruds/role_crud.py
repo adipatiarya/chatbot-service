@@ -30,6 +30,7 @@ class RoleCrud(Crud[Role]):
             id=role.id,
             name=role.name,
             created_at=role.created_at,
+            updated_at=role.updated_at,
             users = [p.email for p in role.users],
             permissions=[p.name for p in role.permissions],
             total_user=len(role.users),
