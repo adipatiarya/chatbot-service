@@ -44,12 +44,13 @@ class RoleUpdate(BaseModel):
     description: Optional[str] = None
     permission_strs: list[str] = Field(default_factory=list)
 
-class RolePublic(BaseModel):
+class  RolePublic(BaseModel):
     id: uuid.UUID
     name: str
-    description: str | None = None
-    created_at: datetime | None = None
-
-    model_config = ConfigDict(from_attributes=True) 
+    created_at: datetime
+    users: list[str] = []
+    permissions: list[str] = []
+    total_user: int = 0
+    total_permission: int = 0
 
     

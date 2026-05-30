@@ -61,7 +61,7 @@ async def test_get_access_token_incorrect_password(client: AsyncClient) -> None:
         "password": 'incorectpass'
     }
     r = await client.post(f"{settings.API_V1_STR}/auth/access-token", data=login_data)
-    assert r.status_code == 400
+    assert r.status_code == 401
 
 @pytest.mark.asyncio
 async def test_recovery_password(client: AsyncClient, normal_user_token_headers: dict[str, str]) -> None:

@@ -8,15 +8,25 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.db import engine
 
 import asyncio
+
+from app.utils import all_perms
 async def initial_role(sess: AsyncSession):
-   default_role = settings.DEFAULT_ROLE
-   service = get_role_service(sess)
-   role = await service.role_crud.get_by_name_or_id(default_role)
-   if role is None:
-     print(f"Role {default_role} akan dibuat")
-     role_in = RoleCreate(name=default_role, permission_strs=[], description='Ini adalah role superuser')
-     role = await service.create_role(role_in)
-   return role
+    result = []
+    for _, perms in all_perms().items():
+        for perm_name, _ in perms.items():
+            result.append(perm_name)
+
+
+    default_role = settings.DEFAULT_ROLE
+    service = get_role_service(sess)
+    await service.create_permissions(result)
+
+    role = await service.role_crud.get_by_name_or_id(default_role)
+    if role is None:
+        print(f"Role {default_role} akan dibuat")
+        role_in = RoleCreate(name=default_role, permission_strs=result, description='Ini adalah role superuser')
+        role = await service.create_role(role_in)
+    return role
    
 async def initial_user(sess: AsyncSession, role_name):
     default_email = settings.FIRST_SUPERUSER

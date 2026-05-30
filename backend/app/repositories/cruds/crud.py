@@ -20,53 +20,6 @@ class Crud(Generic[T]):
     async def list_all(self) -> list[T]:
         result = await self.session.execute(select(self.model))
         return result.scalars().all()
-    
-    async def list_filtered(
-        self,
-        page: int = 1,
-        limit: int = 10,
-        filters: dict[str, str] | None = None,
-        search: str | None = None,
-        order_by: str = "created_at",
-        order_dir: str = "asc",
-        start_date: datetime | None = None,
-        end_date: datetime | None = None
-    ) -> list[T]:
-        query = select(self.model)
-
-        # generic filters (by specific field)
-        if filters:
-            for field, value in filters.items():
-                column = getattr(self.model, field, None)
-                if column is not None and value:
-                    query = query.where(column.ilike(f"%{value}%"))
-
-        # multi-field search (keyword dicari di beberapa kolom sekaligus)
-        if search:
-            query = query.where(
-                or_(
-                    self.model.name.ilike(f"%{search}%"),
-                    self.model.description.ilike(f"%{search}%")
-                )
-            )
-
-        # range filter (created_at)
-        if start_date:
-            query = query.where(self.model.created_at >= start_date)
-        if end_date:
-            query = query.where(self.model.created_at <= end_date)
-
-        # sorting
-        column = getattr(self.model, order_by, None)
-        if column is not None:
-            query = query.order_by(desc(column) if order_dir.lower() == "desc" else asc(column))
-
-        # pagination
-        result = await self.session.execute(
-            query.offset((page - 1) * limit).limit(limit)
-        )
-        return result.scalars().all()
-
     async def add(self, obj: T) -> T:
         try:
             self.session.add(obj)

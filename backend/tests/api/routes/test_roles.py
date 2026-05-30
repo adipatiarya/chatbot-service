@@ -114,7 +114,7 @@ async def test_bulk_insert_and_pagination(client: AsyncClient, normal_user_token
                     "can_create_role": False,
                     "can_delete_role": False,
                     "can_update_role": False,
-                    "can_view_role": False
+                    "can_view_role": True
                 }
             }
         })
@@ -128,8 +128,18 @@ async def test_bulk_insert_and_pagination(client: AsyncClient, normal_user_token
     resp = await client.get(f"{settings.API_V1_STR}/roles?page=1&limit=5&order_by=name&order_dir=asc", headers=normal_user_token_headers)
     assert resp.status_code == 200
     data = resp.json()
+    assert data
+    assert isinstance(data['data'], list)
+
+    assert "total" in data
+    
     assert len(data["data"]) == 5
 
+    for role in data['data']:
+        # assert semua key ada
+        required_keys = ["id", "name", "created_at", "users","permissions", "total_user", "total_permission"]
+        assert all(key in role for key in required_keys), "Missing required keys"
+  
     # test pagination → ambil page 2
     resp = await client.get(f"{settings.API_V1_STR}/roles?page=2&limit=5&order_by=name&order_dir=asc", headers=normal_user_token_headers)
     assert resp.status_code == 200

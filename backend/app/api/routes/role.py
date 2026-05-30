@@ -6,7 +6,7 @@ from app.api.deps import CurrentUser, SessionDep, get_role_service, require_perm
 
 from app.models.role import RoleCreate, RolePublic, RoleUpdate
 
-from app.api.dtos.generic import DataList
+from app.api.dtos.generic import Paginated
 
 from app.api.dtos.role_dto import RolePermissionDto, RolePermissionDetail
 from app.utils import all_perms, apply_permissions, extract_true_permissions
@@ -43,7 +43,7 @@ async def create_role(sess: SessionDep, currentUser: CurrentUser, data: RolePerm
 
 @router.get(
     "",
-    response_model=DataList[RolePublic],
+    response_model=Paginated[RolePublic],
     summary="List roles with full query options",
     description="Daftar role dengan filter generic, multi-field search, pagination, sorting ASC/DESC, dan filter tanggal created_at.",
     dependencies=[Depends(require_permissions(["can_view_role"]))]
@@ -70,7 +70,7 @@ async def list_roles(
         filters["description"] = description
 
     # panggil repository dengan semua parameter
-    list_data = await service.role_crud.list_filtered(
+    list_data = await service.role_crud.filtered(
         page=page,
         limit=limit,
         filters=filters,
@@ -81,12 +81,7 @@ async def list_roles(
         end_date=end_date,
     )
 
-    roles = [RolePublic.model_validate(obj) for obj in list_data]
-
-    return DataList[RolePublic](
-        count=len(roles),
-        data=roles
-    )
+    return list_data
 
 
 @router.get("/{role_id}", 
